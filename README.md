@@ -58,6 +58,23 @@
 
 ---
 
+## 💡 推荐模型与免费 API 额度获取指南
+
+本项目采用「用户自备 API Key」模式。对于日常个人使用，**以下两家服务商均提供充裕的免费额度，无需高额花费即可完全覆盖日常会议需求**：
+
+| 环节 | 推荐模型 / 厂商 | 延迟与性能 | 免费额度说明 | API Key 申请入口 |
+|---|---|---|---|---|
+| **话术建议 (LLM)** | **Google Gemini**<br>(`gemini-2.5-flash` / `gemini-3.5-flash-lite`) | **首包 ~2.4s**<br>响应极快，话术质量高 | Google AI Studio **长期提供免费层（Free Tier）额度**（15 RPM / 100万+ TPD），完全满足单场会议高频提词。 | [👉 前往 Google AI Studio 申请](https://aistudio.google.com/apikey) |
+| **话术建议 (LLM)** | **阿里云百炼**<br>(`qwen-turbo` / `qwen-plus`) | **首包 ~2.6s**<br>中文理解极佳，专有知识对齐好 | 阿里云百炼针对新用户及各系列模型**每月赠送海量免费 Token 额度**（如 Qwen-Turbo 百万 Token 免费）。 | [👉 前往阿里云百炼控制台申请](https://bailian.console.aliyun.com/) |
+| **语音识别 (ASR)** | **阿里云 Paraformer**<br>(`paraformer-realtime-v2`) | **流式识别底座**<br>支持专有名词热词表同步 | 开通即赠送免费测试体验包；后续计费仅 **0.288 元/小时**（一场 1 小时的会议成本不足 0.3 元）。 | [👉 前往阿里云百炼获取 Key](https://bailian.console.aliyun.com/) |
+| **话术建议 (备选)** | **智谱 GLM** (`glm-4-flash`) / **DeepSeek** | 成本极低 / 长期免费 | 智谱开放平台 `glm-4-flash` 模型长期免费开放调用；DeepSeek 提供超高性价比。 | [智谱开放平台](https://open.bigmodel.cn/) · [DeepSeek](https://platform.deepseek.com/) |
+
+> 🌟 **新手黄金搭配推荐**：
+> 1. **语音识别 (ASR)**：使用「阿里云百炼」Paraformer-realtime-v2（单 Key 搞定转写与 Qwen 建议）。
+> 2. **话术建议 (LLM)**：首选「Google Gemini 3.5 Lite / 2.5 Flash」或「阿里云 Qwen-Turbo」，享受毫秒级延迟与零门槛免费额度。
+
+---
+
 ## 🚀 快速开始
 
 ### 方式一：下载开箱即用的安装包 (Windows)

@@ -10,12 +10,17 @@
 
 ### 1.1 语音转写服务 (ASR)
 推荐使用 **阿里云通义百炼（Paraformer-Realtime-v2）**：
-* 价格极低（约 0.288 元/小时），延迟低，支持热词表定制。
+* 价格极低（约 0.288 元/小时），延迟低，支持热词表定制。开通即赠送测试体验额度。
+* [👉 点击前往阿里云百炼控制台获取 API Key](https://bailian.console.aliyun.com/)
 * 在设置页填写你的 `ALIYUN_ASR_KEY` 并点击【测试连接】。
 
 ### 1.2 建议生成模型 (LLM)
-* 推荐配置 **阿里云百炼 (Qwen-Turbo)**、**Google Gemini (Gemini-2.5-Flash / 1.5-Flash)** 或 **DeepSeek**。
-* 填入对应的 API Key 并选择响应速度较快的模型（建议首包延迟 < 2.5 秒）。
+* **首选 Google Gemini** (`gemini-2.5-flash` / `gemini-3.5-flash-lite`)：Google AI Studio 长期提供免费调用额度（Free Tier），首包延迟仅约 2.4s。
+  * [👉 点击前往 Google AI Studio 获取免费 API Key](https://aistudio.google.com/apikey)
+* **首选 阿里云百炼** (`qwen-turbo` / `qwen-plus`)：每月刷新免费 Token 额度，与 ASR 复用同一个 Key。
+  * [👉 点击前往阿里云百炼控制台获取 API Key](https://bailian.console.aliyun.com/)
+* **备选 智谱 GLM / DeepSeek**：智谱 `glm-4-flash` 长期免费；DeepSeek 超高性价比。
+  * [👉 前往智谱开放平台](https://open.bigmodel.cn/) · [👉 前往 DeepSeek 开放平台](https://platform.deepseek.com/)
 
 ---
 
