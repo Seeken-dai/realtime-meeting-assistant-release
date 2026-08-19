@@ -77,8 +77,8 @@
 
 #### 1. 克隆代码
 ```powershell
-git clone https://github.com/Seeken-dai/realtime-meeting-assistant.git
-cd realtime-meeting-assistant
+git clone https://github.com/Seeken-dai/realtime-meeting-assistant-release.git
+cd realtime-meeting-assistant-release
 ```
 
 #### 2. 配置 Python 依赖与本地模型
