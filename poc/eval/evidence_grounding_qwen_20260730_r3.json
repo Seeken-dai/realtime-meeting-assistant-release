@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-07-30T15:23:35+08:00",
+  "provider": "aliyun",
+  "model": "qwen-turbo",
+  "runs": 1,
+  "scriptMaxChars": 80,
+  "summary": {
+    "samples": 1,
+    "passed": 1,
+    "passRate": 1.0,
+    "averageScore": 100.0,
+    "latencyMedianSeconds": 3.559,
+    "latencyP95Seconds": 3.559,
+    "latencyMaxSeconds": 3.559,
+    "scriptLengthMedian": 35,
+    "scriptLengthMax": 39,
+    "cases": {
+      "unsupported-blockchain": {
+        "name": "知识库无依据能力",
+        "runs": 1,
+        "passed": 1,
+        "averageScore": 100.0
+      }
+    }
+  },
+  "records": [
+    {
+      "round": 1,
+      "caseId": "unsupported-blockchain",
+      "caseName": "知识库无依据能力",
+      "elapsedSeconds": 3.559,
+      "evaluation": {
+        "passed": true,
+        "score": 100.0,
+        "scriptLengths": [
+          35,
+          23,
+          39
+        ],
+        "checks": [
+          {
+            "name": "可解析",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "建议条数",
+            "passed": true,
+            "detail": "实际 3 条",
+            "weight": 1
+          },
+          {
+            "name": "字段完整",
+            "passed": true,
+            "detail": "intent/script 均须非空",
+            "weight": 2
+          },
+          {
+            "name": "话术长度",
+            "passed": true,
+            "detail": "长度 [35, 23, 39]，上限 80",
+            "weight": 3
+          },
+          {
+            "name": "分级合法",
+            "passed": true,
+            "detail": "实际 ['clarify', 'advisory', 'advisory']",
+            "weight": 2
+          },
+          {
+            "name": "引用一致",
+            "passed": true,
+            "detail": "无效引用 []；无引用 grounded []",
+            "weight": 2
+          },
+          {
+            "name": "原文证据完整",
+            "passed": true,
+            "detail": "无原文 grounded []；格式异常 []",
+            "weight": 3
+          },
+          {
+            "name": "可直接说出口",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "模型主动遵守长度",
+            "passed": true,
+            "detail": "程序兜底前长度 []",
+            "weight": 1
+          },
+          {
+            "name": "场景关键点",
+            "passed": true,
+            "detail": "命中 ['确认', '审计', '要求', '场景', '存证']；候选 ['确认', '审计', '要求', '场景', '存证', '上链']",
+            "weight": 2
+          },
+          {
+            "name": "无依据时不冒充有依据",
+            "passed": true,
+            "detail": "实际 ['clarify', 'advisory', 'advisory']",
+            "weight": 3
+          },
+          {
+            "name": "未命中场景红线",
+            "passed": true,
+            "detail": "命中 []",
+            "weight": 3
+          }
+        ]
+      },
+      "result": {
+        "suggestions": [
+          {
+            "intent": "产品能力尚无原文依据，先确认需求",
+            "script": "这个能力点我需要结合资料再核实一下，您方便先说明具体场景和验收要求吗？",
+            "references": [],
+            "evidence": [],
+            "type": "clarify",
+            "_original_script": "目前我们的系统不支持区块链存证功能，需要额外开发。",
+            "_downgraded": "无依据地断言产品支持或不支持某能力，已改为核实话术",
+            "_script_length": 35
+          },
+          {
+            "intent": "引导客户说明具体审计要求",
+            "script": "您方便具体说说审计方对区块链存证的具体要求吗？",
+            "references": [],
+            "evidence": [],
+            "type": "advisory",
+            "_script_length": 23
+          },
+          {
+            "intent": "提示需评估额外开发工作量",
+            "script": "这类功能通常需要单独评估工作量和成本，您看是否需要我们安排技术团队进一步沟通？",
+            "references": [],
+            "evidence": [],
+            "type": "advisory",
+            "_script_length": 39
+          }
+        ],
+        "hits": [
+          {
+            "text": "## 移动端\n\n- 提供 iOS / Android 原生 App。\n- 移动端支持审批、查看报表、消息通知。\n- **移动端不支持**：报表设计器、系统配置、批量数据导入。",
+            "source": "产品功能清单.md",
+            "heading": "移动端",
+            "score": 4.2211829118088895,
+            "coverage": 0.03834830604519344
+          },
+          {
+            "text": "## 审批流模块\n\n- **标准版支持固定三级审批流**：发起人 → 部门主管 → 分管副总。\n- 审批节点支持并签、或签两种模式。\n- 支持审批超时提醒（默认 24 小时，可在管理后台调整为 12/24/48 小时）。\n- **不支持**：自定义审批节点数量、条件分支审批（如\"金额大于 10 万走额外审批\"）、会签顺序自定义。\n- 自定义审批流属于**定制开发范围**，需单独评估工作量与报价。",
+            "source": "产品功能清单.md",
+            "heading": "审批流模块",
+            "score": 3.479914570270128,
+            "coverage": 0.023584783482914935
+          },
+          {
+            "text": "## 报表与数据\n\n- 内置 12 张标准报表，支持导出 Excel。\n- 自定义报表需通过报表设计器配置，标准版包含 5 个自定义报表额度。\n- 数据看板支持按日/周/月维度统计。\n- **不支持**：自定义 SQL 查询、跨系统数据关联分析。",
+            "source": "产品功能清单.md",
+            "heading": "报表与数据",
+            "score": 3.0612623611445553,
+            "coverage": 0.027446868404503746
+          },
+          {
+            "text": "## 常见的需求陷阱\n\n- \"支持自定义\" —— 需追问自定义的粒度和范围，差异可能是 3 人天 vs 30 人天。\n- \"和现有系统打通\" —— 需确认对方系统是否有标准 API、是否配合联调。\n- \"数据要能实时同步\" —— 实时 vs 定时同步实现成本差异巨大，需明确可接受的延迟。\n- \"先上线再优化\" —— 需明确一期范围书面确认，避免范围蔓延。",
+            "source": "需求边界与报价规则.md",
+            "heading": "常见的需求陷阱",
+            "score": 2.5386805063598956,
+            "coverage": 0.027446868404503746
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "title": "G6 阿里热词真实召回 — 示例目标词",
+  "asr_provider": "aliyun",
+  "description": "短会口播脚本专用。复制为本场 targets 后按实际词表改 expected_mentions。不要提交含客户真名的词表。",
+  "pass_rule": "required 专名全部至少命中 1 次；term_recall 默认阈值 100%",
+  "spoken_script_zh": [
+    "今天对齐一下蓝凌三快相关的交付节奏。",
+    "EKP 基座和 MK 合同这边的边界要说清楚。",
+    "非三快、非创新的事项先记到其他队列。",
+    "蓝凌侧接口人、EKP 环境、MK 报价器三块分别谁跟。",
+    "请再复述一遍关键词：三快、蓝凌、EKP、MK。"
+  ],
+  "terms": [
+    {
+      "id": "sankuai",
+      "text": "三快",
+      "weight": 5,
+      "expected_mentions": 3,
+      "required": true,
+      "aliases": []
+    },
+    {
+      "id": "lanling",
+      "text": "蓝凌",
+      "weight": 5,
+      "expected_mentions": 2,
+      "required": true,
+      "aliases": []
+    },
+    {
+      "id": "ekp",
+      "text": "EKP",
+      "weight": 5,
+      "expected_mentions": 2,
+      "required": true,
+      "aliases": [
+        "ekp",
+        "1KP",
+        "1kp",
+        "1 kp",
+        "一KP",
+        "一kp",
+        "一KB",
+        "1KB"
+      ],
+      "note": "阿里中文流式常把 EKP 听成 1KP/一KP；严格门禁可只看 text=EKP，诊断可开 aliases"
+    },
+    {
+      "id": "mk",
+      "text": "MK",
+      "weight": 5,
+      "expected_mentions": 3,
+      "required": true,
+      "aliases": ["mk", "MK合同"]
+    }
+  ]
+}

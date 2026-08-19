@@ -1,0 +1,43 @@
+appId: com.meetingcopilot.desktop
+productName: 实时会议话术助手
+# 发布文件名固定使用英文，避免 Windows/GitHub 对中文文件名的编码兼容问题。
+artifactName: realtime-meeting-assistant-V${version}-${arch}.${ext}
+copyright: Copyright © 2026 Meeting Copilot
+asar: true
+compression: normal
+directories:
+  output: ../release/V0.1.4
+  buildResources: build
+files:
+  - dist/**
+  - electron/**
+  - package.json
+  - '!node_modules/**'
+  - '!src/**'
+  - '!tests/**'
+  - '!*.ts'
+  - '!*.map'
+extraResources:
+  - from: ../release/staging/runtime
+    to: runtime
+    filter:
+      - '**/*'
+win:
+  signAndEditExecutable: false
+  target:
+    - nsis
+  executableName: MeetingCopilot
+  requestedExecutionLevel: asInvoker
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 实时会议话术助手
+  uninstallDisplayName: 实时会议话术助手 V0.1.4
+  deleteAppDataOnUninstall: false
+  runAfterFinish: false
+electronLanguages:
+  - zh-CN
+  - en-US

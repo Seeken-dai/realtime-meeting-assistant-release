@@ -1,0 +1,328 @@
+{
+ "note": "会中自适应门槛的评测基准。数据来自 2026-07-27 17:51 那场真实会议录音（meeting-1785145910139-hdk38k.wav）跑 diarize_offline.py 的结果：segments 按时间顺序，score 是 1:1 声纹分，label 是会后聚类给出的归属。",
+ "why_label_is_truth": "会后聚类用的是段与段之间的相互相似度，不依赖注册信道，实测 cluster_th 0.50~0.70 全区间稳定给出同样的 2 簇、两簇分数完全不重叠，因此可以当这场会的真值。见 HANDOFF §4.7。",
+ "source": {
+  "wav": "meeting-1785145910139-hdk38k.wav",
+  "durationSec": 291.4,
+  "vad": "8s / 0.35s（会后粒度，见 diarize_offline.segment_speech）",
+  "meDecision": "cluster",
+  "clusterScores": {
+   "c0": 0.669,
+   "c1": 0.38
+  }
+ },
+ "segments": [
+  {
+   "start": 0.574,
+   "end": 4.386,
+   "score": 0.633,
+   "label": "me"
+  },
+  {
+   "start": 5.182,
+   "end": 10.402,
+   "score": 0.445,
+   "label": "other"
+  },
+  {
+   "start": 10.878,
+   "end": 13.666,
+   "score": 0.391,
+   "label": "other"
+  },
+  {
+   "start": 14.11,
+   "end": 23.132,
+   "score": 0.702,
+   "label": "me"
+  },
+  {
+   "start": 23.55,
+   "end": 30.914,
+   "score": 0.726,
+   "label": "me"
+  },
+  {
+   "start": 32.062,
+   "end": 32.898,
+   "score": 0.226,
+   "label": "other"
+  },
+  {
+   "start": 35.966,
+   "end": 37.122,
+   "score": 0.245,
+   "label": "other"
+  },
+  {
+   "start": 37.534,
+   "end": 41.41,
+   "score": 0.683,
+   "label": "me"
+  },
+  {
+   "start": 42.014,
+   "end": 45.41,
+   "score": 0.663,
+   "label": "me"
+  },
+  {
+   "start": 46.91,
+   "end": 51.266,
+   "score": 0.644,
+   "label": "me"
+  },
+  {
+   "start": 51.998,
+   "end": 59.9,
+   "score": 0.661,
+   "label": "me"
+  },
+  {
+   "start": 60.094,
+   "end": 63.682,
+   "score": 0.687,
+   "label": "me"
+  },
+  {
+   "start": 64.03,
+   "end": 66.85,
+   "score": 0.708,
+   "label": "me"
+  },
+  {
+   "start": 69.918,
+   "end": 72.482,
+   "score": 0.712,
+   "label": "me"
+  },
+  {
+   "start": 72.798,
+   "end": 80.924,
+   "score": 0.706,
+   "label": "me"
+  },
+  {
+   "start": 81.726,
+   "end": 84.898,
+   "score": 0.376,
+   "label": "other"
+  },
+  {
+   "start": 85.726,
+   "end": 88.898,
+   "score": 0.398,
+   "label": "other"
+  },
+  {
+   "start": 90.27,
+   "end": 91.394,
+   "score": 0.507,
+   "label": "me"
+  },
+  {
+   "start": 91.742,
+   "end": 93.986,
+   "score": 0.259,
+   "label": "other"
+  },
+  {
+   "start": 94.398,
+   "end": 95.842,
+   "score": 0.528,
+   "label": "me"
+  },
+  {
+   "start": 96.19,
+   "end": 106.396,
+   "score": 0.655,
+   "label": "me"
+  },
+  {
+   "start": 107.198,
+   "end": 108.45,
+   "score": 0.54,
+   "label": "me"
+  },
+  {
+   "start": 110.558,
+   "end": 111.842,
+   "score": 0.654,
+   "label": "me"
+  },
+  {
+   "start": 115.006,
+   "end": 116.482,
+   "score": 0.354,
+   "label": "other"
+  },
+  {
+   "start": 118.27,
+   "end": 119.874,
+   "score": 0.621,
+   "label": "me"
+  },
+  {
+   "start": 120.542,
+   "end": 131.548,
+   "score": 0.571,
+   "label": "me"
+  },
+  {
+   "start": 131.71,
+   "end": 141.02,
+   "score": 0.703,
+   "label": "me"
+  },
+  {
+   "start": 141.694,
+   "end": 150.044,
+   "score": 0.732,
+   "label": "me"
+  },
+  {
+   "start": 150.27,
+   "end": 152.45,
+   "score": 0.586,
+   "label": "me"
+  },
+  {
+   "start": 152.798,
+   "end": 156.482,
+   "score": 0.411,
+   "label": "other"
+  },
+  {
+   "start": 156.926,
+   "end": 162.466,
+   "score": 0.65,
+   "label": "me"
+  },
+  {
+   "start": 163.294,
+   "end": 174.716,
+   "score": 0.693,
+   "label": "me"
+  },
+  {
+   "start": 175.038,
+   "end": 188.796,
+   "score": 0.754,
+   "label": "me"
+  },
+  {
+   "start": 188.958,
+   "end": 194.37,
+   "score": 0.716,
+   "label": "me"
+  },
+  {
+   "start": 194.846,
+   "end": 195.586,
+   "score": 0.09,
+   "label": "other"
+  },
+  {
+   "start": 195.934,
+   "end": 201.026,
+   "score": 0.369,
+   "label": "other"
+  },
+  {
+   "start": 201.438,
+   "end": 204.162,
+   "score": 0.317,
+   "label": "other"
+  },
+  {
+   "start": 204.574,
+   "end": 209.026,
+   "score": 0.423,
+   "label": "other"
+  },
+  {
+   "start": 209.63,
+   "end": 218.908,
+   "score": 0.458,
+   "label": "other"
+  },
+  {
+   "start": 219.102,
+   "end": 227.292,
+   "score": 0.42,
+   "label": "other"
+  },
+  {
+   "start": 227.55,
+   "end": 229.506,
+   "score": 0.295,
+   "label": "other"
+  },
+  {
+   "start": 230.206,
+   "end": 238.364,
+   "score": 0.384,
+   "label": "other"
+  },
+  {
+   "start": 238.878,
+   "end": 240.93,
+   "score": 0.284,
+   "label": "other"
+  },
+  {
+   "start": 241.63,
+   "end": 243.778,
+   "score": 0.293,
+   "label": "other"
+  },
+  {
+   "start": 245.502,
+   "end": 252.546,
+   "score": 0.611,
+   "label": "me"
+  },
+  {
+   "start": 257.278,
+   "end": 263.266,
+   "score": 0.558,
+   "label": "me"
+  },
+  {
+   "start": 264.766,
+   "end": 268.578,
+   "score": 0.363,
+   "label": "other"
+  },
+  {
+   "start": 268.99,
+   "end": 274.85,
+   "score": 0.39,
+   "label": "other"
+  },
+  {
+   "start": 277.022,
+   "end": 277.73,
+   "score": 0.299,
+   "label": "other"
+  },
+  {
+   "start": 278.91,
+   "end": 280.354,
+   "score": 0.361,
+   "label": "other"
+  },
+  {
+   "start": 280.894,
+   "end": 282.05,
+   "score": 0.252,
+   "label": "other"
+  },
+  {
+   "start": 286.942,
+   "end": 291.36,
+   "score": 0.588,
+   "label": "me"
+  }
+ ]
+}

@@ -1,0 +1,41 @@
+{
+  "note": "单元测试模拟转写与说话人时间轴对齐测试样例",
+  "startedAt": 1785145910000,
+  "durationSec": 60,
+  "segments": [
+    {
+      "start": 0.5,
+      "end": 4.5,
+      "speakerId": "me",
+      "meScore": 0.85
+    },
+    {
+      "start": 5.0,
+      "end": 10.0,
+      "speakerId": "spk1",
+      "meScore": 0.2
+    }
+  ],
+  "speakers": {
+    "me": "我",
+    "spk1": "对方"
+  },
+  "transcript": [
+    {
+      "id": "mock-1",
+      "speaker": "我",
+      "speakerId": "me",
+      "text": "各位好，今天我们过一下技术方案与需求边界。",
+      "isFinal": true,
+      "at": 1785145912000
+    },
+    {
+      "id": "mock-2",
+      "speaker": "对方",
+      "speakerId": "other",
+      "text": "好的，主要确认一下标准接口与定制开发的范围。",
+      "isFinal": true,
+      "at": 1785145918000
+    }
+  ]
+}

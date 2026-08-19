@@ -1,0 +1,271 @@
+{
+  "models": [
+    {
+      "provider": "aliyun",
+      "model": "qwen-turbo",
+      "summary": {
+        "samples": 24,
+        "passed": 18,
+        "passRate": 0.75,
+        "averageScore": 95.4,
+        "latencyMedianSeconds": 1.752,
+        "latencyP95Seconds": 3.746,
+        "latencyMaxSeconds": 4.185,
+        "scriptLengthMedian": 35.0,
+        "scriptLengthMax": 61,
+        "cases": {
+          "custom-boundary": {
+            "name": "定制边界",
+            "runs": 3,
+            "passed": 1,
+            "averageScore": 90.5
+          },
+          "free-integration": {
+            "name": "免费对接压力",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          },
+          "price-deadline": {
+            "name": "追问工期报价",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          },
+          "unsupported-blockchain": {
+            "name": "知识库无依据能力",
+            "runs": 3,
+            "passed": 0,
+            "averageScore": 76.0
+          },
+          "known-api": {
+            "name": "已有 API 能力",
+            "runs": 3,
+            "passed": 2,
+            "averageScore": 96.8
+          },
+          "known-approval-limit": {
+            "name": "标准审批能力边界",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          },
+          "communication-strategy": {
+            "name": "纯沟通策略",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          },
+          "customer-confidentiality": {
+            "name": "客户名称保密",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          }
+        }
+      },
+      "sensitiveFailureSamples": 2,
+      "lengthFallbackSamples": 0,
+      "failureCases": {
+        "custom-boundary": {
+          "name": "定制边界",
+          "failed": 2,
+          "runs": 3
+        },
+        "unsupported-blockchain": {
+          "name": "知识库无依据能力",
+          "failed": 3,
+          "runs": 3
+        },
+        "known-api": {
+          "name": "已有 API 能力",
+          "failed": 1,
+          "runs": 3
+        }
+      },
+      "sourceReports": [
+        "eval\\qwen-turbo_r1.json",
+        "eval\\qwen-turbo_r2.json",
+        "eval\\qwen-turbo_r3.json"
+      ]
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "summary": {
+        "samples": 24,
+        "passed": 18,
+        "passRate": 0.75,
+        "averageScore": 95.5,
+        "latencyMedianSeconds": 1.755,
+        "latencyP95Seconds": 7.861,
+        "latencyMaxSeconds": 63.334,
+        "scriptLengthMedian": 50.0,
+        "scriptLengthMax": 67,
+        "cases": {
+          "custom-boundary": {
+            "name": "定制边界",
+            "runs": 3,
+            "passed": 1,
+            "averageScore": 90.5
+          },
+          "free-integration": {
+            "name": "免费对接压力",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          },
+          "price-deadline": {
+            "name": "追问工期报价",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          },
+          "unsupported-blockchain": {
+            "name": "知识库无依据能力",
+            "runs": 3,
+            "passed": 1,
+            "averageScore": 92.0
+          },
+          "known-api": {
+            "name": "已有 API 能力",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          },
+          "known-approval-limit": {
+            "name": "标准审批能力边界",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          },
+          "communication-strategy": {
+            "name": "纯沟通策略",
+            "runs": 3,
+            "passed": 3,
+            "averageScore": 100.0
+          },
+          "customer-confidentiality": {
+            "name": "客户名称保密",
+            "runs": 3,
+            "passed": 1,
+            "averageScore": 81.8
+          }
+        }
+      },
+      "sensitiveFailureSamples": 4,
+      "lengthFallbackSamples": 0,
+      "failureCases": {
+        "custom-boundary": {
+          "name": "定制边界",
+          "failed": 2,
+          "runs": 3
+        },
+        "unsupported-blockchain": {
+          "name": "知识库无依据能力",
+          "failed": 2,
+          "runs": 3
+        },
+        "customer-confidentiality": {
+          "name": "客户名称保密",
+          "failed": 2,
+          "runs": 3
+        }
+      },
+      "sourceReports": [
+        "eval\\gemini-3.5-flash-lite_r1.json",
+        "eval\\gemini-3.5-flash-lite_r2.json",
+        "eval\\gemini-3.5-flash-lite_r3.json"
+      ]
+    }
+  ],
+  "recommended": {
+    "provider": "aliyun",
+    "model": "qwen-turbo",
+    "summary": {
+      "samples": 24,
+      "passed": 18,
+      "passRate": 0.75,
+      "averageScore": 95.4,
+      "latencyMedianSeconds": 1.752,
+      "latencyP95Seconds": 3.746,
+      "latencyMaxSeconds": 4.185,
+      "scriptLengthMedian": 35.0,
+      "scriptLengthMax": 61,
+      "cases": {
+        "custom-boundary": {
+          "name": "定制边界",
+          "runs": 3,
+          "passed": 1,
+          "averageScore": 90.5
+        },
+        "free-integration": {
+          "name": "免费对接压力",
+          "runs": 3,
+          "passed": 3,
+          "averageScore": 100.0
+        },
+        "price-deadline": {
+          "name": "追问工期报价",
+          "runs": 3,
+          "passed": 3,
+          "averageScore": 100.0
+        },
+        "unsupported-blockchain": {
+          "name": "知识库无依据能力",
+          "runs": 3,
+          "passed": 0,
+          "averageScore": 76.0
+        },
+        "known-api": {
+          "name": "已有 API 能力",
+          "runs": 3,
+          "passed": 2,
+          "averageScore": 96.8
+        },
+        "known-approval-limit": {
+          "name": "标准审批能力边界",
+          "runs": 3,
+          "passed": 3,
+          "averageScore": 100.0
+        },
+        "communication-strategy": {
+          "name": "纯沟通策略",
+          "runs": 3,
+          "passed": 3,
+          "averageScore": 100.0
+        },
+        "customer-confidentiality": {
+          "name": "客户名称保密",
+          "runs": 3,
+          "passed": 3,
+          "averageScore": 100.0
+        }
+      }
+    },
+    "sensitiveFailureSamples": 2,
+    "lengthFallbackSamples": 0,
+    "failureCases": {
+      "custom-boundary": {
+        "name": "定制边界",
+        "failed": 2,
+        "runs": 3
+      },
+      "unsupported-blockchain": {
+        "name": "知识库无依据能力",
+        "failed": 3,
+        "runs": 3
+      },
+      "known-api": {
+        "name": "已有 API 能力",
+        "failed": 1,
+        "runs": 3
+      }
+    },
+    "sourceReports": [
+      "eval\\qwen-turbo_r1.json",
+      "eval\\qwen-turbo_r2.json",
+      "eval\\qwen-turbo_r3.json"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+# POC 依赖 —— 建议在 Python 3.9+ 虚拟环境中安装
+# 麦克风采集
+sounddevice==0.4.7
+PyAudioWPatch==0.2.12.8
+numpy>=1.24
+sherpa-onnx>=1.13.4
+python-docx==1.2.0
+pdfplumber==0.11.10
+reportlab>=5.0
+
+# 阿里云百炼 ASR（Fun-ASR / Paraformer 实时识别）
+dashscope>=1.20.0
+
+# 讯飞 RTASR / 火山引擎豆包（WebSocket 实时语音）
+websocket-client>=1.7.0
+
+# 小米 MiMo-V2.5-ASR（OpenAI 兼容接口）
+openai>=1.30.0
+
+# 腾讯云实时语音识别 SDK（未在 PyPI 稳定发布，需从源码安装）：
+#   pip install git+https://github.com/TencentCloud/tencentcloud-speech-sdk-python.git

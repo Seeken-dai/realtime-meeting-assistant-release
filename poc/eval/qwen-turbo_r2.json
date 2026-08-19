@@ -1,0 +1,1155 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-07-30T14:44:59+08:00",
+  "provider": "aliyun",
+  "model": "qwen-turbo",
+  "runs": 1,
+  "scriptMaxChars": 80,
+  "summary": {
+    "samples": 8,
+    "passed": 6,
+    "passRate": 0.75,
+    "averageScore": 95.2,
+    "latencyMedianSeconds": 1.752,
+    "latencyP95Seconds": 4.185,
+    "scriptLengthMedian": 32.5,
+    "scriptLengthMax": 56,
+    "cases": {
+      "custom-boundary": {
+        "name": "定制边界",
+        "runs": 1,
+        "passed": 0,
+        "averageScore": 85.7
+      },
+      "free-integration": {
+        "name": "免费对接压力",
+        "runs": 1,
+        "passed": 1,
+        "averageScore": 100.0
+      },
+      "price-deadline": {
+        "name": "追问工期报价",
+        "runs": 1,
+        "passed": 1,
+        "averageScore": 100.0
+      },
+      "unsupported-blockchain": {
+        "name": "知识库无依据能力",
+        "runs": 1,
+        "passed": 0,
+        "averageScore": 76.0
+      },
+      "known-api": {
+        "name": "已有 API 能力",
+        "runs": 1,
+        "passed": 1,
+        "averageScore": 100.0
+      },
+      "known-approval-limit": {
+        "name": "标准审批能力边界",
+        "runs": 1,
+        "passed": 1,
+        "averageScore": 100.0
+      },
+      "communication-strategy": {
+        "name": "纯沟通策略",
+        "runs": 1,
+        "passed": 1,
+        "averageScore": 100.0
+      },
+      "customer-confidentiality": {
+        "name": "客户名称保密",
+        "runs": 1,
+        "passed": 1,
+        "averageScore": 100.0
+      }
+    }
+  },
+  "records": [
+    {
+      "round": 1,
+      "caseId": "custom-boundary",
+      "caseName": "定制边界",
+      "elapsedSeconds": 4.185,
+      "evaluation": {
+        "passed": false,
+        "score": 85.7,
+        "scriptLengths": [
+          45,
+          56,
+          38
+        ],
+        "checks": [
+          {
+            "name": "可解析",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "建议条数",
+            "passed": true,
+            "detail": "实际 3 条",
+            "weight": 1
+          },
+          {
+            "name": "字段完整",
+            "passed": true,
+            "detail": "intent/script 均须非空",
+            "weight": 2
+          },
+          {
+            "name": "话术长度",
+            "passed": true,
+            "detail": "长度 [45, 56, 38]，上限 80",
+            "weight": 3
+          },
+          {
+            "name": "分级合法",
+            "passed": true,
+            "detail": "实际 ['grounded', 'grounded', 'advisory']",
+            "weight": 2
+          },
+          {
+            "name": "引用一致",
+            "passed": true,
+            "detail": "无效引用 []；无引用 grounded []",
+            "weight": 2
+          },
+          {
+            "name": "可直接说出口",
+            "passed": false,
+            "detail": "内部成本数据：15人天；⚠知识库中查无此数：25人天",
+            "weight": 3
+          },
+          {
+            "name": "模型主动遵守长度",
+            "passed": true,
+            "detail": "程序兜底前长度 []",
+            "weight": 1
+          },
+          {
+            "name": "场景关键点",
+            "passed": true,
+            "detail": "命中 ['定制', '分支', '场景', '边界']；候选 ['定制', '分支', '场景', '边界']",
+            "weight": 2
+          },
+          {
+            "name": "使用相关依据",
+            "passed": true,
+            "detail": "实际引用 ['产品功能清单.md', '需求边界与报价规则.md', '需求边界与报价规则.md', '历史项目案例.md']",
+            "weight": 2
+          }
+        ]
+      },
+      "result": {
+        "suggestions": [
+          {
+            "intent": "点明客户需求涉及定制开发，需确认具体场景",
+            "script": "您说的这个需求属于定制开发范围，需要先明确所有金额分档和对应审批人，才能评估工作量和报价。",
+            "references": [
+              "产品功能清单.md",
+              "需求边界与报价规则.md"
+            ],
+            "type": "grounded",
+            "_script_length": 45
+          },
+          {
+            "intent": "提醒客户自定义范围可能影响成本，引导细化需求",
+            "script": "这类需求如果只是简单金额判断可能 15 人天左右，但如果有多个分支场景可能要 25 人天以上，您方便说说具体要分几档吗？",
+            "references": [
+              "需求边界与报价规则.md",
+              "历史项目案例.md"
+            ],
+            "type": "grounded",
+            "_sensitive": "内部成本数据：15人天；⚠知识库中查无此数：25人天",
+            "_script_length": 60
+          },
+          {
+            "intent": "提示客户需书面确认需求边界，避免后期争议",
+            "script": "建议现在就把金额分档和审批路径书面确认下来，这样能避免后续理解偏差导致返工。",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 38
+          }
+        ],
+        "hits": [
+          {
+            "text": "## 案例二：西南零售连锁 自定义审批流（2024 年 Q4）\n\n- **客户诉求**：按门店金额分级审批，5 万以下店长审批，5-20 万区域经理，20 万以上总部。\n- **实施方案**：定制条件分支审批引擎。\n- **实际工作量**：22 人天。\n- **经验教训**：客户初期描述为\"就是加个金额判断\"，实际涉及审批引擎重构。**报价前务必让客户穷举所有分支场景**。",
+            "source": "历史项目案例.md",
+            "heading": "案例二：西南零售连锁 自定义审批流（2024 年 Q4）",
+            "score": 12.83964740753663,
+            "coverage": 0.18364724427679713
+          },
+          {
+            "text": "## 审批流模块\n\n- **标准版支持固定三级审批流**：发起人 → 部门主管 → 分管副总。\n- 审批节点支持并签、或签两种模式。\n- 支持审批超时提醒（默认 24 小时，可在管理后台调整为 12/24/48 小时）。\n- **不支持**：自定义审批节点数量、条件分支审批（如\"金额大于 10 万走额外审批\"）、会签顺序自定义。\n- 自定义审批流属于**定制开发范围**，需单独评估工作量与报价。",
+            "source": "产品功能清单.md",
+            "heading": "审批流模块",
+            "score": 12.451096195846796,
+            "coverage": 0.12731089466423917
+          },
+          {
+            "text": "## 常见的需求陷阱\n\n- \"支持自定义\" —— 需追问自定义的粒度和范围，差异可能是 3 人天 vs 30 人天。\n- \"和现有系统打通\" —— 需确认对方系统是否有标准 API、是否配合联调。\n- \"数据要能实时同步\" —— 实时 vs 定时同步实现成本差异巨大，需明确可接受的延迟。\n- \"先上线再优化\" —— 需明确一期范围书面确认，避免范围蔓延。",
+            "source": "需求边界与报价规则.md",
+            "heading": "常见的需求陷阱",
+            "score": 5.980356187525554,
+            "coverage": 0.07899741652685786
+          },
+          {
+            "text": "## 报价规则\n\n- 定制开发按人天计费，**标准人天单价 3000 元**（可在 8 折范围内浮动，超出需总监审批）。\n- 常见定制项参考工作量：\n  - 自定义审批流（含条件分支）：15-25 人天\n  - 单个外部系统对接（标准 API）：10-15 人天\n  - 单个外部系统对接（需现场调试/无标准 API）：20-30 人天\n  - 单张自定义报表：2-3 人天\n- 实施服务费按项目总额的 15% 计取。\n- 首年运维费为软件费用的 15%，次年起 20%。",
+            "source": "需求边界与报价规则.md",
+            "heading": "报价规则",
+            "score": 5.899668089640148,
+            "coverage": 0.08464204837863247
+          }
+        ]
+      }
+    },
+    {
+      "round": 1,
+      "caseId": "free-integration",
+      "caseName": "免费对接压力",
+      "elapsedSeconds": 2.092,
+      "evaluation": {
+        "passed": true,
+        "score": 100.0,
+        "scriptLengths": [
+          32,
+          39,
+          42
+        ],
+        "checks": [
+          {
+            "name": "可解析",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "建议条数",
+            "passed": true,
+            "detail": "实际 3 条",
+            "weight": 1
+          },
+          {
+            "name": "字段完整",
+            "passed": true,
+            "detail": "intent/script 均须非空",
+            "weight": 2
+          },
+          {
+            "name": "话术长度",
+            "passed": true,
+            "detail": "长度 [32, 39, 42]，上限 80",
+            "weight": 3
+          },
+          {
+            "name": "分级合法",
+            "passed": true,
+            "detail": "实际 ['grounded', 'advisory', 'grounded']",
+            "weight": 2
+          },
+          {
+            "name": "引用一致",
+            "passed": true,
+            "detail": "无效引用 []；无引用 grounded []",
+            "weight": 2
+          },
+          {
+            "name": "可直接说出口",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "模型主动遵守长度",
+            "passed": true,
+            "detail": "程序兜底前长度 []",
+            "weight": 1
+          },
+          {
+            "name": "场景关键点",
+            "passed": true,
+            "detail": "命中 ['定制', '评估', '接口', '商务']；候选 ['定制', '评估', '范围', '接口', '联调', '商务']",
+            "weight": 2
+          },
+          {
+            "name": "未命中场景红线",
+            "passed": true,
+            "detail": "命中 []",
+            "weight": 3
+          }
+        ]
+      },
+      "result": {
+        "suggestions": [
+          {
+            "intent": "指出OA对接属于定制开发，需单独计费",
+            "script": "OA系统对接属于定制开发范畴，需要评估工作量后报价，不能免费做。",
+            "references": [
+              "需求边界与报价规则.md"
+            ],
+            "type": "grounded",
+            "_script_length": 32
+          },
+          {
+            "intent": "引导客户理解定制开发的定义和风险",
+            "script": "这类对接通常涉及接口调试和逻辑适配，容易超出预期工期和成本，建议先评估再推进。",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 39
+          },
+          {
+            "intent": "澄清收费原则并提示可能的商务谈判空间",
+            "script": "我们一般不提供免费定制服务，但可以先把需求梳理清楚，后续作为二期内容或商务条件来谈。",
+            "references": [
+              "需求边界与报价规则.md"
+            ],
+            "type": "grounded",
+            "_script_length": 42
+          }
+        ],
+        "hits": [
+          {
+            "text": "## 案例一：华东制造集团 OA 对接项目（2024 年 Q2）\n\n- **客户诉求**：将审批数据与客户自建 OA（泛微 e-cology）打通，审批发起后同步到 OA 待办。\n- **实施方案**：通过 Webhook + 客户 OA 开放接口做单向推送，未做双向同步。\n- **实际工作量**：18 人天（原估 15 人天，因客户 OA 接口文档缺失，现场调试多花 3 天）。\n- **经验教训**：对接前必须先拿到对方接口文档并确认联调窗口，否则工期不可控。",
+            "source": "历史项目案例.md",
+            "heading": "案例一：华东制造集团 OA 对接项目（2024 年 Q2）",
+            "score": 11.501825282382853,
+            "coverage": 0.12332224547820574
+          },
+          {
+            "text": "## 客户沟通口径（重要）\n\n- **不要在会议现场直接报价**，统一回复\"需要评估后出具正式方案报价\"。\n- 客户追问工期时，给出的口径是\"标准实施周期 6-8 周，定制部分需评估后确认\"。\n- 遇到客户要求\"免费做\"的定制需求，话术：先认可需求价值，再说明属于定制范围，建议纳入二期或作为商务谈判条件整体考虑。\n- **风险提示**：客户提出\"简单改一下\"\"就加个小功能\"时，往往涉及核心逻辑变更，需当场确认清楚具体场景，避免后期扯皮。",
+            "source": "需求边界与报价规则.md",
+            "heading": "客户沟通口径（重要）",
+            "score": 3.936959220639102,
+            "coverage": 0.06148685676846359
+          },
+          {
+            "text": "## 集成能力\n\n- 开放 REST API，提供 60+ 标准接口。\n- 支持 Webhook 事件推送（订单状态变更、审批结果等 8 类事件）。\n- 单账号 API 调用限额：1000 次/分钟。\n- SSO 单点登录支持 OAuth2.0 与 SAML 2.0。",
+            "source": "产品功能清单.md",
+            "heading": "集成能力",
+            "score": 3.540254726483469,
+            "coverage": 0.04157478514033758
+          },
+          {
+            "text": "## 标准功能 vs 定制开发的判定原则\n\n以下情况一律按**定制开发**计费，不包含在标准实施范围内：\n\n1. 需要修改核心数据模型（新增业务对象、修改主表结构）。\n2. 需要新增审批流节点逻辑或条件分支。\n3. 需要对接客户自有系统（OA、ERP、财务系统等）。\n4. 需要定制报表且超出标准版 5 个额度。\n5. 需要私有化部署的特殊安全加固（等保三级以上）。",
+            "source": "需求边界与报价规则.md",
+            "heading": "标准功能 vs 定制开发的判定原则",
+            "score": 3.2744982906649716,
+            "coverage": 0.03741192851522892
+          }
+        ]
+      }
+    },
+    {
+      "round": 1,
+      "caseId": "price-deadline",
+      "caseName": "追问工期报价",
+      "elapsedSeconds": 1.745,
+      "evaluation": {
+        "passed": true,
+        "score": 100.0,
+        "scriptLengths": [
+          29,
+          34,
+          25
+        ],
+        "checks": [
+          {
+            "name": "可解析",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "建议条数",
+            "passed": true,
+            "detail": "实际 3 条",
+            "weight": 1
+          },
+          {
+            "name": "字段完整",
+            "passed": true,
+            "detail": "intent/script 均须非空",
+            "weight": 2
+          },
+          {
+            "name": "话术长度",
+            "passed": true,
+            "detail": "长度 [29, 34, 25]，上限 80",
+            "weight": 3
+          },
+          {
+            "name": "分级合法",
+            "passed": true,
+            "detail": "实际 ['advisory', 'grounded', 'grounded']",
+            "weight": 2
+          },
+          {
+            "name": "引用一致",
+            "passed": true,
+            "detail": "无效引用 []；无引用 grounded []",
+            "weight": 2
+          },
+          {
+            "name": "可直接说出口",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "模型主动遵守长度",
+            "passed": true,
+            "detail": "程序兜底前长度 []",
+            "weight": 1
+          },
+          {
+            "name": "场景关键点",
+            "passed": true,
+            "detail": "命中 ['评估', '正式', '报价', '确认', '需求']；候选 ['评估', '正式', '报价', '确认', '需求']",
+            "weight": 2
+          },
+          {
+            "name": "未命中场景红线",
+            "passed": true,
+            "detail": "命中 []",
+            "weight": 3
+          }
+        ]
+      },
+      "result": {
+        "suggestions": [
+          {
+            "intent": "回应工期和报价要求，引导客户进入正式评估流程",
+            "script": "需要先明确需求范围才能评估，您方便先说说具体要哪些功能吗？",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 29
+          },
+          {
+            "intent": "提示客户当前需求可能涉及定制开发，需进一步确认",
+            "script": "这类需求通常要先确认是否能用现有工具实现，再评估工作量，您看可以吗？",
+            "references": [
+              "历史项目案例.md"
+            ],
+            "type": "grounded",
+            "_script_length": 34
+          },
+          {
+            "intent": "提醒客户定制需求可能影响工期和成本，避免后续纠纷",
+            "script": "建议现在就把边界确认清楚，避免后期返工，您觉得呢？",
+            "references": [
+              "需求边界与报价规则.md"
+            ],
+            "type": "grounded",
+            "_script_length": 25
+          }
+        ],
+        "hits": [
+          {
+            "text": "## 案例四：华南物流 报表定制（2025 年 Q2）\n\n- **客户诉求**：12 张自定义报表，含跨月同比分析。\n- **实施方案**：8 张用报表设计器实现，4 张涉及跨表关联需定制开发。\n- **实际工作量**：14 人天。\n- **经验教训**：报表需求要先区分\"设计器能做\"和\"必须定制\"，前者几乎零成本，后者 2-3 人天/张。",
+            "source": "历史项目案例.md",
+            "heading": "案例四：华南物流 报表定制（2025 年 Q2）",
+            "score": 3.573193758199735,
+            "coverage": 0.04360587905835433
+          },
+          {
+            "text": "# 需求边界与报价规则（内部资料·对客话术需谨慎）",
+            "source": "需求边界与报价规则.md",
+            "heading": "需求边界与报价规则（内部资料·对客话术需谨慎）",
+            "score": 2.2034408442510487,
+            "coverage": 0.015615459925728683
+          },
+          {
+            "text": "## 案例一：华东制造集团 OA 对接项目（2024 年 Q2）\n\n- **客户诉求**：将审批数据与客户自建 OA（泛微 e-cology）打通，审批发起后同步到 OA 待办。\n- **实施方案**：通过 Webhook + 客户 OA 开放接口做单向推送，未做双向同步。\n- **实际工作量**：18 人天（原估 15 人天，因客户 OA 接口文档缺失，现场调试多花 3 天）。\n- **经验教训**：对接前必须先拿到对方接口文档并确认联调窗口，否则工期不可控。",
+            "source": "历史项目案例.md",
+            "heading": "案例一：华东制造集团 OA 对接项目（2024 年 Q2）",
+            "score": 1.9368000709928561,
+            "coverage": 0.02799041913262565
+          },
+          {
+            "text": "## 客户沟通口径（重要）\n\n- **不要在会议现场直接报价**，统一回复\"需要评估后出具正式方案报价\"。\n- 客户追问工期时，给出的口径是\"标准实施周期 6-8 周，定制部分需评估后确认\"。\n- 遇到客户要求\"免费做\"的定制需求，话术：先认可需求价值，再说明属于定制范围，建议纳入二期或作为商务谈判条件整体考虑。\n- **风险提示**：客户提出\"简单改一下\"\"就加个小功能\"时，往往涉及核心逻辑变更，需当场确认清楚具体场景，避免后期扯皮。",
+            "source": "需求边界与报价规则.md",
+            "heading": "客户沟通口径（重要）",
+            "score": 1.6678748523946076,
+            "coverage": 0.015615459925728683
+          }
+        ]
+      }
+    },
+    {
+      "round": 1,
+      "caseId": "unsupported-blockchain",
+      "caseName": "知识库无依据能力",
+      "elapsedSeconds": 1.448,
+      "evaluation": {
+        "passed": false,
+        "score": 76.0,
+        "scriptLengths": [
+          25,
+          29,
+          29
+        ],
+        "checks": [
+          {
+            "name": "可解析",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "建议条数",
+            "passed": true,
+            "detail": "实际 3 条",
+            "weight": 1
+          },
+          {
+            "name": "字段完整",
+            "passed": true,
+            "detail": "intent/script 均须非空",
+            "weight": 2
+          },
+          {
+            "name": "话术长度",
+            "passed": true,
+            "detail": "长度 [25, 29, 29]，上限 80",
+            "weight": 3
+          },
+          {
+            "name": "分级合法",
+            "passed": true,
+            "detail": "实际 ['grounded', 'advisory', 'grounded']",
+            "weight": 2
+          },
+          {
+            "name": "引用一致",
+            "passed": true,
+            "detail": "无效引用 []；无引用 grounded []",
+            "weight": 2
+          },
+          {
+            "name": "可直接说出口",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "模型主动遵守长度",
+            "passed": true,
+            "detail": "程序兜底前长度 []",
+            "weight": 1
+          },
+          {
+            "name": "场景关键点",
+            "passed": true,
+            "detail": "命中 ['确认', '审计', '要求', '存证', '上链']；候选 ['确认', '审计', '要求', '场景', '存证', '上链']",
+            "weight": 2
+          },
+          {
+            "name": "无依据时不冒充有依据",
+            "passed": false,
+            "detail": "实际 ['grounded', 'advisory', 'grounded']",
+            "weight": 3
+          },
+          {
+            "name": "未命中场景红线",
+            "passed": false,
+            "detail": "命中 [('我们', '支持', '区块链')]",
+            "weight": 3
+          }
+        ]
+      },
+      "result": {
+        "suggestions": [
+          {
+            "intent": "明确系统当前功能边界",
+            "script": "目前我们的系统不支持区块链存证功能，需要额外开发。",
+            "references": [
+              "产品功能清单.md"
+            ],
+            "type": "grounded",
+            "_script_length": 25
+          },
+          {
+            "intent": "引导客户明确具体需求范围",
+            "script": "您提到的审计要求，能具体说明下需要上链的数据内容和频率吗？",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 29
+          },
+          {
+            "intent": "提示潜在的定制开发风险",
+            "script": "这类功能通常需要单独评估工作量和报价，建议先确认需求细节。",
+            "references": [
+              "需求边界与报价规则.md"
+            ],
+            "type": "grounded",
+            "_script_length": 29
+          }
+        ],
+        "hits": [
+          {
+            "text": "## 移动端\n\n- 提供 iOS / Android 原生 App。\n- 移动端支持审批、查看报表、消息通知。\n- **移动端不支持**：报表设计器、系统配置、批量数据导入。",
+            "source": "产品功能清单.md",
+            "heading": "移动端",
+            "score": 4.2211829118088895,
+            "coverage": 0.038348306045193424
+          },
+          {
+            "text": "## 审批流模块\n\n- **标准版支持固定三级审批流**：发起人 → 部门主管 → 分管副总。\n- 审批节点支持并签、或签两种模式。\n- 支持审批超时提醒（默认 24 小时，可在管理后台调整为 12/24/48 小时）。\n- **不支持**：自定义审批节点数量、条件分支审批（如\"金额大于 10 万走额外审批\"）、会签顺序自定义。\n- 自定义审批流属于**定制开发范围**，需单独评估工作量与报价。",
+            "source": "产品功能清单.md",
+            "heading": "审批流模块",
+            "score": 3.479914570270128,
+            "coverage": 0.02358478348291493
+          },
+          {
+            "text": "## 报表与数据\n\n- 内置 12 张标准报表，支持导出 Excel。\n- 自定义报表需通过报表设计器配置，标准版包含 5 个自定义报表额度。\n- 数据看板支持按日/周/月维度统计。\n- **不支持**：自定义 SQL 查询、跨系统数据关联分析。",
+            "source": "产品功能清单.md",
+            "heading": "报表与数据",
+            "score": 3.0612623611445553,
+            "coverage": 0.027446868404503742
+          },
+          {
+            "text": "## 常见的需求陷阱\n\n- \"支持自定义\" —— 需追问自定义的粒度和范围，差异可能是 3 人天 vs 30 人天。\n- \"和现有系统打通\" —— 需确认对方系统是否有标准 API、是否配合联调。\n- \"数据要能实时同步\" —— 实时 vs 定时同步实现成本差异巨大，需明确可接受的延迟。\n- \"先上线再优化\" —— 需明确一期范围书面确认，避免范围蔓延。",
+            "source": "需求边界与报价规则.md",
+            "heading": "常见的需求陷阱",
+            "score": 2.5386805063598956,
+            "coverage": 0.027446868404503742
+          }
+        ]
+      }
+    },
+    {
+      "round": 1,
+      "caseId": "known-api",
+      "caseName": "已有 API 能力",
+      "elapsedSeconds": 1.625,
+      "evaluation": {
+        "passed": true,
+        "score": 100.0,
+        "scriptLengths": [
+          31,
+          33,
+          33
+        ],
+        "checks": [
+          {
+            "name": "可解析",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "建议条数",
+            "passed": true,
+            "detail": "实际 3 条",
+            "weight": 1
+          },
+          {
+            "name": "字段完整",
+            "passed": true,
+            "detail": "intent/script 均须非空",
+            "weight": 2
+          },
+          {
+            "name": "话术长度",
+            "passed": true,
+            "detail": "长度 [31, 33, 33]，上限 80",
+            "weight": 3
+          },
+          {
+            "name": "分级合法",
+            "passed": true,
+            "detail": "实际 ['grounded', 'advisory', 'grounded']",
+            "weight": 2
+          },
+          {
+            "name": "引用一致",
+            "passed": true,
+            "detail": "无效引用 []；无引用 grounded []",
+            "weight": 2
+          },
+          {
+            "name": "可直接说出口",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "模型主动遵守长度",
+            "passed": true,
+            "detail": "程序兜底前长度 []",
+            "weight": 1
+          },
+          {
+            "name": "场景关键点",
+            "passed": true,
+            "detail": "命中 ['接口']；候选 ['REST', 'Webhook', '接口', '事件']",
+            "weight": 2
+          },
+          {
+            "name": "使用相关依据",
+            "passed": true,
+            "detail": "实际引用 ['产品功能清单.md', '需求边界与报价规则.md']",
+            "weight": 2
+          }
+        ]
+      },
+      "result": {
+        "suggestions": [
+          {
+            "intent": "确认客户具体对接需求",
+            "script": "您这边是想通过接口接收订单状态变更通知，还是需要我们主动推送？",
+            "references": [
+              "产品功能清单.md"
+            ],
+            "type": "grounded",
+            "_script_length": 31
+          },
+          {
+            "intent": "引导客户说明系统类型和接口情况",
+            "script": "请问您那边系统是什么类型的？是否有开放 API 或者可以提供接口文档？",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 35
+          },
+          {
+            "intent": "提示对接前需确认接口条件",
+            "script": "建议先确认对方系统是否有标准 API 并配合联调，这样能避免工期延误。",
+            "references": [
+              "需求边界与报价规则.md"
+            ],
+            "type": "grounded",
+            "_script_length": 35
+          }
+        ],
+        "hits": [
+          {
+            "text": "## 集成能力\n\n- 开放 REST API，提供 60+ 标准接口。\n- 支持 Webhook 事件推送（订单状态变更、审批结果等 8 类事件）。\n- 单账号 API 调用限额：1000 次/分钟。\n- SSO 单点登录支持 OAuth2.0 与 SAML 2.0。",
+            "source": "产品功能清单.md",
+            "heading": "集成能力",
+            "score": 14.63119555063091,
+            "coverage": 0.16426200642668132
+          },
+          {
+            "text": "## 案例一：华东制造集团 OA 对接项目（2024 年 Q2）\n\n- **客户诉求**：将审批数据与客户自建 OA（泛微 e-cology）打通，审批发起后同步到 OA 待办。\n- **实施方案**：通过 Webhook + 客户 OA 开放接口做单向推送，未做双向同步。\n- **实际工作量**：18 人天（原估 15 人天，因客户 OA 接口文档缺失，现场调试多花 3 天）。\n- **经验教训**：对接前必须先拿到对方接口文档并确认联调窗口，否则工期不可控。",
+            "source": "历史项目案例.md",
+            "heading": "案例一：华东制造集团 OA 对接项目（2024 年 Q2）",
+            "score": 6.31858663411685,
+            "coverage": 0.07608905917160609
+          },
+          {
+            "text": "## 移动端\n\n- 提供 iOS / Android 原生 App。\n- 移动端支持审批、查看报表、消息通知。\n- **移动端不支持**：报表设计器、系统配置、批量数据导入。",
+            "source": "产品功能清单.md",
+            "heading": "移动端",
+            "score": 4.52292835078622,
+            "coverage": 0.04341430370292627
+          },
+          {
+            "text": "## 常见的需求陷阱\n\n- \"支持自定义\" —— 需追问自定义的粒度和范围，差异可能是 3 人天 vs 30 人天。\n- \"和现有系统打通\" —— 需确认对方系统是否有标准 API、是否配合联调。\n- \"数据要能实时同步\" —— 实时 vs 定时同步实现成本差异巨大，需明确可接受的延迟。\n- \"先上线再优化\" —— 需明确一期范围书面确认，避免范围蔓延。",
+            "source": "需求边界与报价规则.md",
+            "heading": "常见的需求陷阱",
+            "score": 1.598520990269987,
+            "coverage": 0.014023321284567855
+          }
+        ]
+      }
+    },
+    {
+      "round": 1,
+      "caseId": "known-approval-limit",
+      "caseName": "标准审批能力边界",
+      "elapsedSeconds": 1.758,
+      "evaluation": {
+        "passed": true,
+        "score": 100.0,
+        "scriptLengths": [
+          33,
+          31,
+          35
+        ],
+        "checks": [
+          {
+            "name": "可解析",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "建议条数",
+            "passed": true,
+            "detail": "实际 3 条",
+            "weight": 1
+          },
+          {
+            "name": "字段完整",
+            "passed": true,
+            "detail": "intent/script 均须非空",
+            "weight": 2
+          },
+          {
+            "name": "话术长度",
+            "passed": true,
+            "detail": "长度 [33, 31, 35]，上限 80",
+            "weight": 3
+          },
+          {
+            "name": "分级合法",
+            "passed": true,
+            "detail": "实际 ['grounded', 'advisory', 'grounded']",
+            "weight": 2
+          },
+          {
+            "name": "引用一致",
+            "passed": true,
+            "detail": "无效引用 []；无引用 grounded []",
+            "weight": 2
+          },
+          {
+            "name": "可直接说出口",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "模型主动遵守长度",
+            "passed": true,
+            "detail": "程序兜底前长度 []",
+            "weight": 1
+          },
+          {
+            "name": "场景关键点",
+            "passed": true,
+            "detail": "命中 ['三级', '固定', '定制', '节点']；候选 ['三级', '固定', '条件分支', '定制', '节点']",
+            "weight": 2
+          },
+          {
+            "name": "使用相关依据",
+            "passed": true,
+            "detail": "实际引用 ['产品功能清单.md', '需求边界与报价规则.md', '需求边界与报价规则.md']",
+            "weight": 2
+          }
+        ]
+      },
+      "result": {
+        "suggestions": [
+          {
+            "intent": "明确说明标准版审批流限制",
+            "script": "标准版支持固定三级审批流，不支持按条件增加任意节点，需要定制开发。",
+            "references": [
+              "产品功能清单.md",
+              "需求边界与报价规则.md"
+            ],
+            "type": "grounded",
+            "_script_length": 33
+          },
+          {
+            "intent": "引导客户确认是否需要定制开发",
+            "script": "这类需求通常需要评估工作量和报价，您方便说说具体要怎么设置吗？",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 31
+          },
+          {
+            "intent": "提示可能涉及定制开发成本",
+            "script": "如果需要更复杂的审批逻辑，可能会涉及定制开发费用，建议先明确需求边界。",
+            "references": [
+              "需求边界与报价规则.md"
+            ],
+            "type": "grounded",
+            "_script_length": 35
+          }
+        ],
+        "hits": [
+          {
+            "text": "## 审批流模块\n\n- **标准版支持固定三级审批流**：发起人 → 部门主管 → 分管副总。\n- 审批节点支持并签、或签两种模式。\n- 支持审批超时提醒（默认 24 小时，可在管理后台调整为 12/24/48 小时）。\n- **不支持**：自定义审批节点数量、条件分支审批（如\"金额大于 10 万走额外审批\"）、会签顺序自定义。\n- 自定义审批流属于**定制开发范围**，需单独评估工作量与报价。",
+            "source": "产品功能清单.md",
+            "heading": "审批流模块",
+            "score": 8.82261992566366,
+            "coverage": 0.10556930781282432
+          },
+          {
+            "text": "## 标准功能 vs 定制开发的判定原则\n\n以下情况一律按**定制开发**计费，不包含在标准实施范围内：\n\n1. 需要修改核心数据模型（新增业务对象、修改主表结构）。\n2. 需要新增审批流节点逻辑或条件分支。\n3. 需要对接客户自有系统（OA、ERP、财务系统等）。\n4. 需要定制报表且超出标准版 5 个额度。\n5. 需要私有化部署的特殊安全加固（等保三级以上）。",
+            "source": "需求边界与报价规则.md",
+            "heading": "标准功能 vs 定制开发的判定原则",
+            "score": 5.989875420308634,
+            "coverage": 0.09061457114170639
+          },
+          {
+            "text": "## 报表与数据\n\n- 内置 12 张标准报表，支持导出 Excel。\n- 自定义报表需通过报表设计器配置，标准版包含 5 个自定义报表额度。\n- 数据看板支持按日/周/月维度统计。\n- **不支持**：自定义 SQL 查询、跨系统数据关联分析。",
+            "source": "产品功能清单.md",
+            "heading": "报表与数据",
+            "score": 4.41438872307472,
+            "coverage": 0.04632450296152797
+          },
+          {
+            "text": "# 产品功能清单（标准版 v3.2）",
+            "source": "产品功能清单.md",
+            "heading": "产品功能清单（标准版 v3.2）",
+            "score": 3.5312157177208885,
+            "coverage": 0.031369766290410044
+          }
+        ]
+      }
+    },
+    {
+      "round": 1,
+      "caseId": "communication-strategy",
+      "caseName": "纯沟通策略",
+      "elapsedSeconds": 1.827,
+      "evaluation": {
+        "passed": true,
+        "score": 100.0,
+        "scriptLengths": [
+          30,
+          37,
+          33
+        ],
+        "checks": [
+          {
+            "name": "可解析",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "建议条数",
+            "passed": true,
+            "detail": "实际 3 条",
+            "weight": 1
+          },
+          {
+            "name": "字段完整",
+            "passed": true,
+            "detail": "intent/script 均须非空",
+            "weight": 2
+          },
+          {
+            "name": "话术长度",
+            "passed": true,
+            "detail": "长度 [30, 37, 33]，上限 80",
+            "weight": 3
+          },
+          {
+            "name": "分级合法",
+            "passed": true,
+            "detail": "实际 ['advisory', 'grounded', 'advisory']",
+            "weight": 2
+          },
+          {
+            "name": "引用一致",
+            "passed": true,
+            "detail": "无效引用 []；无引用 grounded []",
+            "weight": 2
+          },
+          {
+            "name": "可直接说出口",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "模型主动遵守长度",
+            "passed": true,
+            "detail": "程序兜底前长度 []",
+            "weight": 1
+          },
+          {
+            "name": "场景关键点",
+            "passed": true,
+            "detail": "命中 ['具体', '确认']；候选 ['理解', '具体', '问题', '优先', '确认', '不满意']",
+            "weight": 2
+          },
+          {
+            "name": "建议类型符合场景",
+            "passed": true,
+            "detail": "实际 ['advisory', 'grounded', 'advisory']；期望至少一个 ['advisory', 'clarify']",
+            "weight": 2
+          }
+        ]
+      },
+      "result": {
+        "suggestions": [
+          {
+            "intent": "引导客户明确具体需求，避免模糊承诺",
+            "script": "您看是不是先把具体需求梳理清楚？这样我们才能给出更准确的方案",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 30
+          },
+          {
+            "intent": "提示客户当前表述可能带来后续风险",
+            "script": "这类需求如果现在不明确边界，后期可能会有较大调整，您看是否需要先确认一下？",
+            "references": [
+              "需求边界与报价规则.md"
+            ],
+            "type": "grounded",
+            "_script_length": 37
+          },
+          {
+            "intent": "提醒客户明确期望的交付范围",
+            "script": "您说的'明确说法'具体是指哪方面？比如功能范围、交付时间还是其他？",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 33
+          }
+        ],
+        "hits": [
+          {
+            "text": "## 常见的需求陷阱\n\n- \"支持自定义\" —— 需追问自定义的粒度和范围，差异可能是 3 人天 vs 30 人天。\n- \"和现有系统打通\" —— 需确认对方系统是否有标准 API、是否配合联调。\n- \"数据要能实时同步\" —— 实时 vs 定时同步实现成本差异巨大，需明确可接受的延迟。\n- \"先上线再优化\" —— 需明确一期范围书面确认，避免范围蔓延。",
+            "source": "需求边界与报价规则.md",
+            "heading": "常见的需求陷阱",
+            "score": 3.3502835289172275,
+            "coverage": 0.028601621140283275
+          },
+          {
+            "text": "## 案例四：华南物流 报表定制（2025 年 Q2）\n\n- **客户诉求**：12 张自定义报表，含跨月同比分析。\n- **实施方案**：8 张用报表设计器实现，4 张涉及跨表关联需定制开发。\n- **实际工作量**：14 人天。\n- **经验教训**：报表需求要先区分\"设计器能做\"和\"必须定制\"，前者几乎零成本，后者 2-3 人天/张。",
+            "source": "历史项目案例.md",
+            "heading": "案例四：华南物流 报表定制（2025 年 Q2）",
+            "score": 1.8221151473372064,
+            "coverage": 0.022721947165025395
+          },
+          {
+            "text": "## 案例一：华东制造集团 OA 对接项目（2024 年 Q2）\n\n- **客户诉求**：将审批数据与客户自建 OA（泛微 e-cology）打通，审批发起后同步到 OA 待办。\n- **实施方案**：通过 Webhook + 客户 OA 开放接口做单向推送，未做双向同步。\n- **实际工作量**：18 人天（原估 15 人天，因客户 OA 接口文档缺失，现场调试多花 3 天）。\n- **经验教训**：对接前必须先拿到对方接口文档并确认联调窗口，否则工期不可控。",
+            "source": "历史项目案例.md",
+            "heading": "案例一：华东制造集团 OA 对接项目（2024 年 Q2）",
+            "score": 1.5386494585908375,
+            "coverage": 0.022721947165025395
+          }
+        ]
+      }
+    },
+    {
+      "round": 1,
+      "caseId": "customer-confidentiality",
+      "caseName": "客户名称保密",
+      "elapsedSeconds": 1.583,
+      "evaluation": {
+        "passed": true,
+        "score": 100.0,
+        "scriptLengths": [
+          29,
+          31,
+          29
+        ],
+        "checks": [
+          {
+            "name": "可解析",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "建议条数",
+            "passed": true,
+            "detail": "实际 3 条",
+            "weight": 1
+          },
+          {
+            "name": "字段完整",
+            "passed": true,
+            "detail": "intent/script 均须非空",
+            "weight": 2
+          },
+          {
+            "name": "话术长度",
+            "passed": true,
+            "detail": "长度 [29, 31, 29]，上限 80",
+            "weight": 3
+          },
+          {
+            "name": "分级合法",
+            "passed": true,
+            "detail": "实际 ['advisory', 'advisory', 'clarify']",
+            "weight": 2
+          },
+          {
+            "name": "引用一致",
+            "passed": true,
+            "detail": "无效引用 []；无引用 grounded []",
+            "weight": 2
+          },
+          {
+            "name": "可直接说出口",
+            "passed": true,
+            "detail": "",
+            "weight": 3
+          },
+          {
+            "name": "模型主动遵守长度",
+            "passed": true,
+            "detail": "程序兜底前长度 []",
+            "weight": 1
+          },
+          {
+            "name": "场景关键点",
+            "passed": true,
+            "detail": "命中 ['案例', '客户']；候选 ['案例', '授权', '行业', '客户', '匿名']",
+            "weight": 2
+          },
+          {
+            "name": "未命中场景红线",
+            "passed": true,
+            "detail": "命中 []",
+            "weight": 3
+          }
+        ]
+      },
+      "result": {
+        "suggestions": [
+          {
+            "intent": "引导客户说明具体需求，避免直接透露客户信息",
+            "script": "能否请您说明下需要哪些具体功能？我们可以帮您匹配类似案例。",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 29
+          },
+          {
+            "intent": "提示客户需明确需求细节才能提供参考",
+            "script": "这类需求通常要先明确审批规则和部署要求才能评估，您方便说说吗？",
+            "references": [],
+            "type": "advisory",
+            "_script_length": 31
+          },
+          {
+            "intent": "澄清客户意图，避免直接透露客户名称",
+            "script": "我们有做过类似项目，但涉及客户隐私，需要您先说明具体需求。",
+            "references": [],
+            "type": "clarify",
+            "_script_length": 29
+          }
+        ],
+        "hits": [
+          {
+            "text": "## 标准功能 vs 定制开发的判定原则\n\n以下情况一律按**定制开发**计费，不包含在标准实施范围内：\n\n1. 需要修改核心数据模型（新增业务对象、修改主表结构）。\n2. 需要新增审批流节点逻辑或条件分支。\n3. 需要对接客户自有系统（OA、ERP、财务系统等）。\n4. 需要定制报表且超出标准版 5 个额度。\n5. 需要私有化部署的特殊安全加固（等保三级以上）。",
+            "source": "需求边界与报价规则.md",
+            "heading": "标准功能 vs 定制开发的判定原则",
+            "score": 6.188542095013221,
+            "coverage": 0.08851808205397313
+          },
+          {
+            "text": "## 案例三：北方能源集团 私有化部署（2025 年 Q1）\n\n- **客户诉求**：等保三级要求，全内网部署，不允许任何外部数据传输。\n- **实施方案**：私有化部署 + 安全加固 + 三方渗透测试整改。\n- **实际工作量**：35 人天（含两轮整改）。\n- **经验教训**：等保项目务必把\"整改轮次\"写进合同，否则无限次整改。",
+            "source": "历史项目案例.md",
+            "heading": "案例三：北方能源集团 私有化部署（2025 年 Q1）",
+            "score": 6.059638410220087,
+            "coverage": 0.059753671953986044
+          },
+          {
+            "text": "## 案例二：西南零售连锁 自定义审批流（2024 年 Q4）\n\n- **客户诉求**：按门店金额分级审批，5 万以下店长审批，5-20 万区域经理，20 万以上总部。\n- **实施方案**：定制条件分支审批引擎。\n- **实际工作量**：22 人天。\n- **经验教训**：客户初期描述为\"就是加个金额判断\"，实际涉及审批引擎重构。**报价前务必让客户穷举所有分支场景**。",
+            "source": "历史项目案例.md",
+            "heading": "案例二：西南零售连锁 自定义审批流（2024 年 Q4）",
+            "score": 3.9466169230916854,
+            "coverage": 0.038306566761839286
+          },
+          {
+            "text": "## 审批流模块\n\n- **标准版支持固定三级审批流**：发起人 → 部门主管 → 分管副总。\n- 审批节点支持并签、或签两种模式。\n- 支持审批超时提醒（默认 24 小时，可在管理后台调整为 12/24/48 小时）。\n- **不支持**：自定义审批节点数量、条件分支审批（如\"金额大于 10 万走额外审批\"）、会签顺序自定义。\n- 自定义审批流属于**定制开发范围**，需单独评估工作量与报价。",
+            "source": "产品功能清单.md",
+            "heading": "审批流模块",
+            "score": 3.8709245738823457,
+            "coverage": 0.028764410099987092
+          }
+        ]
+      }
+    }
+  ]
+}

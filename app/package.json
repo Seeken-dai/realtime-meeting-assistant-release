@@ -1,0 +1,42 @@
+{
+  "name": "meeting-copilot-desktop",
+  "private": true,
+  "type": "module",
+  "version": "0.1.4",
+  "description": "实时会议话术助手 V0.1.4 Windows desktop release",
+  "productName": "实时会议话术助手",
+  "author": "Meeting Copilot",
+  "license": "UNLICENSED",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && electron .\"",
+    "dev:web": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "test:m4": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../run-m4-regression.ps1",
+    "test:store": "node tests/test-meeting-store.cjs",
+    "test:startup": "node tests/test-meeting-startup.cjs && node --experimental-strip-types tests/test-meeting-startup.ts",
+    "test:playback": "node --experimental-strip-types tests/test-playback.ts",
+    "test:timeline": "node --experimental-strip-types tests/test-timeline.ts",
+    "package": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../package.ps1",
+    "package:dir": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../package.ps1 -DirOnly",
+    "preview": "vite preview --host 127.0.0.1",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "wait-on": "^8.0.1"
+  }
+}

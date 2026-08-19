@@ -1,0 +1,56 @@
+# Local secrets & configs (Strictly never commit)
+poc/config.py
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*secrets*.json
+**/secrets/
+**/recordings/
+
+# Python runtime & caches
+**/__pycache__/
+*.py[cod]
+poc/.venv/
+.venv/
+*.egg-info/
+
+# Node / Electron build
+app/node_modules/
+app/dist/
+app/.vite/
+app/out/
+app/vite.config.js
+app/vite.config.d.ts
+release/
+artifacts/
+*.tsbuildinfo
+*.asar
+
+# Local databases and logs
+data/
+*.log
+poc/docs/.kb_cache.json
+
+# Local Voiceprint & VAD models (Download instructions in poc/models/README.md)
+poc/models/*.onnx
+
+# Evaluation cache
+poc/eval/*.mp3
+poc/eval/*.wav
+poc/eval/_work*
+poc/eval/speaker_regression_runs/
+poc/eval/real_meeting_runs/
+poc/eval/reports/
+poc/eval/raw/
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.claude/
+.agents/
