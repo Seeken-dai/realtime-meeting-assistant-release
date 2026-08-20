@@ -1093,6 +1093,7 @@ function FloatingStrategyWindow() {
     tint: string;
     fontSize: "small" | "medium" | "large";
     alwaysOnTop: boolean;
+    contentProtection: boolean;
     collapsed: boolean;
   }>(() => {
     try {
@@ -1105,6 +1106,7 @@ function FloatingStrategyWindow() {
             ? saved.fontSize
             : "medium",
         alwaysOnTop: saved?.alwaysOnTop !== false,
+        contentProtection: saved?.contentProtection !== false,
         collapsed: Boolean(saved?.collapsed),
       };
     } catch {
@@ -1113,6 +1115,7 @@ function FloatingStrategyWindow() {
         tint: "#f4f5f3",
         fontSize: "medium",
         alwaysOnTop: true,
+        contentProtection: true,
         collapsed: false,
       };
     }
@@ -1141,6 +1144,7 @@ function FloatingStrategyWindow() {
     localStorage.setItem(preferenceKey, JSON.stringify(preferences));
     void window.meetingCopilot?.setFloatingStrategyPreferences({
       alwaysOnTop: preferences.alwaysOnTop,
+      contentProtection: preferences.contentProtection,
       collapsed: preferences.collapsed,
       fontSize: preferences.fontSize,
       tint: preferences.tint,
@@ -1468,6 +1472,29 @@ function FloatingStrategyWindow() {
             />
             <em>{preferences.opacity}%</em>
           </label>
+          <div className="floating-appearance-row floating-protection-row">
+            <span>防投屏</span>
+            <label
+              className="floating-toggle-label"
+              title="开启后，钉钉、腾讯会议等投屏/录屏时将自动隐藏悬浮窗（仅本机可见）"
+            >
+              <input
+                type="checkbox"
+                checked={preferences.contentProtection}
+                onChange={(event) =>
+                  setPreferences((current) => ({
+                    ...current,
+                    contentProtection: event.target.checked,
+                  }))
+                }
+              />
+              <span className="floating-toggle-text">
+                {preferences.contentProtection
+                  ? "隐形模式（投屏不显示）"
+                  : "常规模式（投屏可见）"}
+              </span>
+            </label>
+          </div>
         </div>
       )}
 
@@ -4291,36 +4318,38 @@ function PrepareScreen({
             <span>决定如何识别“我”和“对方”</span>
           </div>
         </div>
-        <div className="meeting-mode-picker">
-          <button
-            className={(persisted.meetingMode || "in_person") === "in_person" ? "active" : ""}
-            onClick={() =>
-              onChange({ ...persisted, meetingMode: "in_person" })
-            }
-          >
-            <Mic2 size={17} />
-            <span>
-              <strong>线下会议</strong>
-              <small>一个麦克风，使用说话人识别</small>
-            </span>
-          </button>
-          <button
-            className={persisted.meetingMode === "online" ? "active" : ""}
-            onClick={() => onChange({ ...persisted, meetingMode: "online" })}
-          >
-            <Headphones size={17} />
-            <span>
-              <strong>线上会议</strong>
-              <small>麦克风是我，系统播放是对方</small>
-            </span>
-          </button>
-        </div>
-        {persisted.meetingMode === "online" && (
-          <div className="online-mode-note">
-            自动捕获 Windows 当前默认播放设备。请使用耳机，避免扬声器声音再次进入麦克风；
-            两路独立转写会产生约双倍 ASR 用量。
+        <div className="meeting-mode-picker-wrap">
+          <div className="meeting-mode-picker">
+            <button
+              className={(persisted.meetingMode || "in_person") === "in_person" ? "active" : ""}
+              onClick={() =>
+                onChange({ ...persisted, meetingMode: "in_person" })
+              }
+            >
+              <Mic2 size={17} />
+              <span>
+                <strong>线下会议</strong>
+                <small>一个麦克风，使用说话人识别</small>
+              </span>
+            </button>
+            <button
+              className={persisted.meetingMode === "online" ? "active" : ""}
+              onClick={() => onChange({ ...persisted, meetingMode: "online" })}
+            >
+              <Headphones size={17} />
+              <span>
+                <strong>线上会议</strong>
+                <small>麦克风是我，系统播放是对方</small>
+              </span>
+            </button>
           </div>
-        )}
+          {persisted.meetingMode === "online" && (
+            <div className="online-mode-note">
+              自动捕获 Windows 当前默认播放设备。请使用耳机，避免扬声器声音再次进入麦克风；
+              两路独立转写会产生约双倍 ASR 用量。
+            </div>
+          )}
+        </div>
       </div>
       <div className="form-section">
         <div className="form-section-label">
@@ -4334,45 +4363,47 @@ function PrepareScreen({
             </span>
           </div>
         </div>
-        <label className="field">
-          <span>输入设备</span>
-          <select
-            value={persisted.selectedDevice ?? ""}
-            onChange={(event) => onSelectDevice(Number(event.target.value))}
-          >
-            <option value="" disabled>
-              请选择麦克风
-            </option>
-            {devices.map((device) => (
-              <option key={device.index} value={device.index}>
-                {device.name}
-                {device.isDefault ? "（默认）" : ""}
+        <div className="form-fields">
+          <label className="field">
+            <span>输入设备</span>
+            <select
+              value={persisted.selectedDevice ?? ""}
+              onChange={(event) => onSelectDevice(Number(event.target.value))}
+            >
+              <option value="" disabled>
+                请选择麦克风
               </option>
-            ))}
-          </select>
-        </label>
-        <div className="device-check">
-          <DeviceLevelBars />
-          <span>
-            {deviceTestStatus === "testing" && "正在测试，请对着麦克风说话…"}
-            {deviceTestStatus === "success" && "测试完成，设备可以正常拾音"}
-            {deviceTestStatus === "error" && "测试失败，请更换设备或查看启动窗口"}
-            {deviceTestStatus === "idle" &&
-              (devices.length ? "设备已识别，建议开始前测试一次" : "正在读取设备…")}
-          </span>
-          <button
-            className="button ghost small"
-            onClick={onTestDevice}
-            disabled={deviceTestStatus === "testing" || persisted.selectedDevice === undefined}
-          >
-            <Volume2 size={14} />
-            {deviceTestStatus === "testing" ? "测试中" : "测试麦克风"}
-          </button>
-          <button className="text-button" onClick={onRefreshDevices}>
-            重新检测
-          </button>
+              {devices.map((device) => (
+                <option key={device.index} value={device.index}>
+                  {device.name}
+                  {device.isDefault ? "（默认）" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="device-check">
+            <DeviceLevelBars />
+            <span>
+              {deviceTestStatus === "testing" && "正在测试，请对着麦克风说话…"}
+              {deviceTestStatus === "success" && "测试完成，设备可以正常拾音"}
+              {deviceTestStatus === "error" && "测试失败，请更换设备或查看启动窗口"}
+              {deviceTestStatus === "idle" &&
+                (devices.length ? "设备已识别，建议开始前测试一次" : "正在读取设备…")}
+            </span>
+            <button
+              className="button ghost small"
+              onClick={onTestDevice}
+              disabled={deviceTestStatus === "testing" || persisted.selectedDevice === undefined}
+            >
+              <Volume2 size={14} />
+              {deviceTestStatus === "testing" ? "测试中" : "测试麦克风"}
+            </button>
+            <button className="text-button" onClick={onRefreshDevices}>
+              重新检测
+            </button>
+          </div>
+          {deviceError && <div className="inline-error">{deviceError}</div>}
         </div>
-        {deviceError && <div className="inline-error">{deviceError}</div>}
       </div>
       <div className="form-section">
         <div className="form-section-label">
@@ -4387,40 +4418,42 @@ function PrepareScreen({
             </button>
           )}
         </div>
-        <div className="project-picker">
-          <button
-            type="button"
-            className={`project-chip optional ${
-              activeProjectId === null ? "active" : ""
-            }`}
-            onClick={() => onSelectProject(null)}
-          >
-            <strong>不归属项目</strong>
-            <small>从知识库任选资料</small>
-          </button>
-          {projects.map((project) => (
+        <div className="project-picker-wrap">
+          <div className="project-picker">
             <button
               type="button"
-              key={project.id}
-              className={`project-chip ${
-                project.id === activeProjectId ? "active" : ""
+              className={`project-chip optional ${
+                activeProjectId === null ? "active" : ""
               }`}
-              onClick={() => onSelectProject(project.id)}
+              onClick={() => onSelectProject(null)}
             >
-              <strong>{project.name}</strong>
-              <small>{project.documentCount} 份文档</small>
+              <strong>不归属项目</strong>
+              <small>从知识库任选资料</small>
             </button>
-          ))}
+            {projects.map((project) => (
+              <button
+                type="button"
+                key={project.id}
+                className={`project-chip ${
+                  project.id === activeProjectId ? "active" : ""
+                }`}
+                onClick={() => onSelectProject(project.id)}
+              >
+                <strong>{project.name}</strong>
+                <small>{project.documentCount} 份文档</small>
+              </button>
+            ))}
+          </div>
+          {projects.length === 0 && (
+            <p className="field-hint" style={{ marginTop: 10 }}>
+              还没有项目。可直接开会，或去{" "}
+              <button type="button" className="text-button" onClick={onManageProjects}>
+                项目
+              </button>{" "}
+              页创建。
+            </p>
+          )}
         </div>
-        {projects.length === 0 && (
-          <p className="field-hint" style={{ marginTop: 10 }}>
-            还没有项目。可直接开会，或去{" "}
-            <button type="button" className="text-button" onClick={onManageProjects}>
-              项目
-            </button>{" "}
-            页创建。
-          </p>
-        )}
       </div>
       <div className="form-section">
         <div className="form-section-label">
@@ -4437,67 +4470,71 @@ function PrepareScreen({
             知识库
           </button>
         </div>
-        {documents.length > 0 && (
-          <div className="settings-row" style={{ gap: 8, marginBottom: 10 }}>
-            <button
-              type="button"
-              className="button ghost small"
-              onClick={onSelectAllDocs}
-              disabled={documents.filter((d) => d.exists).length === 0}
-            >
-              全选
-            </button>
-            <button
-              type="button"
-              className="button ghost small"
-              onClick={onClearDocs}
-              disabled={selectedDocIds.length === 0}
-            >
-              全部取消勾选
-            </button>
-          </div>
-        )}
-        {documents.length === 0 ? (
-          <div className="empty-hint">
-            {activeProjectId
-              ? "该项目还没有可用资料。可到项目页勾选，或本场不选文档开会。"
-              : "知识库为空。未选文档时 AI 只给经验建议，不会引用资料。"}
-            <button className="button ghost" onClick={onManageKnowledge}>
-              去知识库
-            </button>
-          </div>
-        ) : (
-          documents.map((doc) => {
-            const checked = selectedDocIds.includes(doc.id);
-            return (
-              <label
-                className={`document-check ${doc.exists ? "" : "missing"}`}
-                key={doc.id}
+        <div className="document-picker-wrap">
+          {documents.length > 0 && (
+            <div className="settings-row" style={{ gap: 8, marginBottom: 10 }}>
+              <button
+                type="button"
+                className="button ghost small"
+                onClick={onSelectAllDocs}
+                disabled={documents.filter((d) => d.exists).length === 0}
               >
-                <input
-                  type="checkbox"
-                  checked={checked && doc.exists}
-                  disabled={!doc.exists}
-                  onChange={() => onToggleDoc(doc.id)}
-                />
-                <span className="custom-check">
-                  <Check size={13} />
-                </span>
-                <FileText size={17} />
-                <span>
-                  <strong>{doc.name}</strong>
-                  <small>
-                    {doc.exists
-                      ? activeProjectId
-                        ? "项目可用资料 · 本地关键词索引"
-                        : "知识库 · 本地关键词索引"
-                      : "⚠️ 原文件已移动或删除，无法使用"}
-                  </small>
-                </span>
-              </label>
-            );
-          })
-        )}
+                全选
+              </button>
+              <button
+                type="button"
+                className="button ghost small"
+                onClick={onClearDocs}
+                disabled={selectedDocIds.length === 0}
+              >
+                全部取消勾选
+              </button>
+            </div>
+          )}
+          {documents.length === 0 ? (
+            <div className="empty-hint">
+              {activeProjectId
+                ? "该项目还没有可用资料。可到项目页勾选，或本场不选文档开会。"
+                : "知识库为空。未选文档时 AI 只给经验建议，不会引用资料。"}
+              <button className="button ghost" onClick={onManageKnowledge}>
+                去知识库
+              </button>
+            </div>
+          ) : (
+            <div className="document-list">
+              {documents.map((doc) => {
+                const checked = selectedDocIds.includes(doc.id);
+                return (
+                  <label
+                    className={`document-check ${doc.exists ? "" : "missing"}`}
+                    key={doc.id}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked && doc.exists}
+                      disabled={!doc.exists}
+                      onChange={() => onToggleDoc(doc.id)}
+                    />
+                    <span className="custom-check">
+                      <Check size={13} />
+                    </span>
+                    <FileText size={17} />
+                    <span>
+                      <strong>{doc.name}</strong>
+                      <small>
+                        {doc.exists
+                          ? activeProjectId
+                            ? "项目可用资料 · 本地关键词索引"
+                            : "知识库 · 本地关键词索引"
+                          : "⚠️ 原文件已移动或删除，无法使用"}
+                      </small>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
       <div className="sticky-actions">
         <div>
@@ -8033,17 +8070,20 @@ function GlossaryPanel({
   title,
   description,
   onNotify,
+  onTermsChanged,
 }: {
   scope: "general" | string;
   title: string;
   description: string;
   onNotify: (value: string) => void;
+  onTermsChanged?: () => void;
 }) {
   const bridge = window.meetingCopilot;
   const [terms, setTerms] = useState<GlossaryTerm[]>([]);
   const [draft, setDraft] = useState("");
   const [weight, setWeight] = useState(4);
   const [busy, setBusy] = useState(false);
+  const [termSearch, setTermSearch] = useState("");
   const isGeneral = scope === "general";
 
   const reload = useCallback(async () => {
@@ -8077,6 +8117,7 @@ function GlossaryPanel({
       });
       setDraft("");
       await reload();
+      onTermsChanged?.();
       onNotify(`已添加专有名词「${term}」`);
     } catch (error) {
       onNotify(error instanceof Error ? error.message : "添加失败");
@@ -8089,85 +8130,130 @@ function GlossaryPanel({
     if (!bridge?.deleteGlossaryTerm) return;
     await bridge.deleteGlossaryTerm(item.id);
     await reload();
+    onTermsChanged?.();
     onNotify(`已删除「${item.term}」`);
   }
 
+  const filteredTerms = terms.filter((t) => {
+    if (!termSearch.trim()) return true;
+    return t.term.toLowerCase().includes(termSearch.trim().toLowerCase());
+  });
+
   return (
-    <section className="glossary-panel">
-      <header className="glossary-panel-head">
-        <div>
-          <h3 className="list-heading">
-            {title}
-            <span>{description}</span>
-          </h3>
+    <div className="glossary-detail-card">
+      <div className="glossary-card-header">
+        <div className="glossary-title-area">
+          <div className="glossary-title-row">
+            <h2>{title}</h2>
+            <span className="meta-badge">共 {terms.length} 个专词</span>
+          </div>
+          <p className="glossary-desc-text">{description}</p>
         </div>
-        <small className="glossary-count">{terms.length} 个</small>
-      </header>
-      <p className="glossary-hint muted">
-        词库始终可维护。开会时合并「通用 + 本场项目」；是否生效取决于设置里
-        当前选中的转写服务（选中后会提示；当前已接线：阿里云）。
-      </p>
-      <div className="glossary-add">
-        <input
-          value={draft}
-          placeholder="如：三快、Webhook、CAM++"
-          maxLength={15}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") void addTerm();
-          }}
-          disabled={!bridge || busy}
-        />
-        <label className="glossary-weight">
-          权重
-          <select
-            value={weight}
-            onChange={(event) => setWeight(Number(event.target.value) || 4)}
-            disabled={!bridge || busy}
-          >
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          className="button secondary small"
-          onClick={() => void addTerm()}
-          disabled={!bridge || busy || !draft.trim()}
-        >
-          添加
-        </button>
       </div>
-      {terms.length === 0 ? (
-        <div className="empty-hint glossary-empty">
-          还没有词。建议录入产品名、项目黑话、客户口头禅式简称。
+
+      <div className="glossary-body-section">
+        {/* 添加专有名词录入卡片 */}
+        <div className="glossary-add-bar">
+          <div className="glossary-input-wrap">
+            <input
+              value={draft}
+              placeholder="输入专有名词 / 黑话 / 缩写，例如：三快、CAM++、SaaS网关"
+              maxLength={20}
+              onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") void addTerm();
+              }}
+              disabled={!bridge || busy}
+            />
+          </div>
+          <div className="glossary-weight-picker">
+            <span>权重</span>
+            <select
+              value={weight}
+              onChange={(event) => setWeight(Number(event.target.value) || 4)}
+              disabled={!bridge || busy}
+              title="权重越高，实时语音识别时越优先偏向匹配此词"
+            >
+              <option value={5}>5 (最高)</option>
+              <option value={4}>4 (推荐)</option>
+              <option value={3}>3 (普通)</option>
+              <option value={2}>2 (较低)</option>
+              <option value={1}>1 (最低)</option>
+            </select>
+          </div>
+          <button
+            className="button primary small"
+            onClick={() => void addTerm()}
+            disabled={!bridge || busy || !draft.trim()}
+          >
+            <Plus size={14} /> 添加专词
+          </button>
         </div>
-      ) : (
-        <ul className="glossary-list">
-          {terms.map((item) => (
-            <li key={item.id}>
-              <strong>{item.term}</strong>
-              <em>权重 {item.weight}</em>
-              <button
-                className="icon-button"
-                title="删除"
-                aria-label={`删除 ${item.term}`}
-                onClick={() => void removeTerm(item)}
-              >
-                <X size={14} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+
+        {/* 专有名词过滤与列表区域 */}
+        <div className="glossary-terms-container">
+          {terms.length > 6 && (
+            <div className="glossary-search-filter">
+              <Search size={14} />
+              <input
+                placeholder="搜索当前列表中的专有名词..."
+                value={termSearch}
+                onChange={(e) => setTermSearch(e.target.value)}
+              />
+              {termSearch && (
+                <button
+                  className="icon-button small"
+                  onClick={() => setTermSearch("")}
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {terms.length === 0 ? (
+            <div className="empty-hint glossary-empty-box">
+              <Type size={36} />
+              <p>当前词库还没有专有名词。</p>
+              <small>
+                建议录入业务专有名词、业务简称或容易被 ASR 误识别的黑话。
+              </small>
+            </div>
+          ) : filteredTerms.length === 0 ? (
+            <div className="empty-hint" style={{ padding: "32px 16px" }}>
+              未找到匹配「{termSearch}」的专有名词
+            </div>
+          ) : (
+            <div className="glossary-term-grid">
+              {filteredTerms.map((item) => (
+                <div className="glossary-term-chip" key={item.id}>
+                  <strong className="term-text">{item.term}</strong>
+                  <span
+                    className={`term-weight-pill weight-${item.weight}`}
+                    title={`识别加权: ${item.weight}`}
+                  >
+                    w{item.weight}
+                  </span>
+                  <button
+                    type="button"
+                    className="term-del-btn"
+                    title={`删除「${item.term}」`}
+                    aria-label={`删除 ${item.term}`}
+                    onClick={() => void removeTerm(item)}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
-// 知识库页：纯文档库维护（导入 / 重命名 / 预览 / 删除）。
-// 项目与"可用资料"归属放到独立的「项目」页（ProjectsScreen）。
+// 知识库页：纯文档库维护（导入 / 搜索过滤 / 重命名 / 预览 / 删除）。
 function KnowledgeScreen({
   documents,
   onRefresh,
@@ -8185,11 +8271,27 @@ function KnowledgeScreen({
     null,
   );
   const [isDragging, setIsDragging] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterTab, setFilterTab] = useState<"all" | "ready" | "missing">("all");
+
   const missingCount = documents.filter((doc) => !doc.exists).length;
+  const readyCount = documents.length - missingCount;
+
+  const filteredDocs = documents.filter((doc) => {
+    if (filterTab === "ready" && !doc.exists) return false;
+    if (filterTab === "missing" && doc.exists) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      return doc.name.toLowerCase().includes(q) || (doc.path && doc.path.toLowerCase().includes(q));
+    }
+    return true;
+  });
 
   async function commitRename() {
     if (!renamingDoc || !bridge) return;
-    await bridge.renameDocument(renamingDoc.id, renamingDoc.value);
+    const name = renamingDoc.value.trim();
+    if (!name) return setRenamingDoc(null);
+    await bridge.renameDocument(renamingDoc.id, name);
     setRenamingDoc(null);
     await onRefresh();
     onNotify("已重命名（磁盘上的原文件未改动）");
@@ -8197,7 +8299,6 @@ function KnowledgeScreen({
 
   async function importDocuments() {
     if (!bridge) return onNotify("桌面服务未连接，无法导入");
-    // 不带 projectId → 导入到全局库
     const result = await bridge.pickDocuments();
     await onRefresh();
     if (result.errors?.length) {
@@ -8240,9 +8341,18 @@ function KnowledgeScreen({
     const files = Array.from(event.dataTransfer.files || []);
     if (!files.length) return;
     const filePaths = files
-      .map((f) => (f as unknown as { path?: string }).path || "")
+      .map((f) => {
+        if (bridge?.getPathForFile) {
+          const p = bridge.getPathForFile(f);
+          if (p) return p;
+        }
+        return (f as unknown as { path?: string }).path || "";
+      })
       .filter(Boolean);
-    if (!filePaths.length) return;
+    if (!filePaths.length) {
+      onNotify("未能获取拖拽文件路径，请点击右上角「导入文件」选择");
+      return;
+    }
     const result = await bridge.addDocumentPaths(filePaths);
     await onRefresh();
     if (result.errors?.length) {
@@ -8296,7 +8406,7 @@ function KnowledgeScreen({
         <div className="knowledge-drag-overlay">
           <UploadCloud size={44} />
           <strong>释放以导入文档或整个文件夹</strong>
-          <span>自动递归扫描所有 .md、.txt、.docx、.pdf 文档</span>
+          <span>自动递归扫描所有 .md、.txt、.docx、.pdf 文档并登记到全局库</span>
         </div>
       )}
       <header className="page-heading">
@@ -8304,7 +8414,7 @@ function KnowledgeScreen({
           <div className="eyebrow">证据来源</div>
           <h1>知识库</h1>
           <p>
-            全局文档库。建议引用的原文来自这里。支持直接拖拽文件或文件夹到本页面导入。
+            全局文档中枢。开会与评审时检索建议的原文证据来自这里。支持直接拖拽文件或文件夹到本页面导入。
           </p>
         </div>
         <div className="page-heading-actions">
@@ -8320,123 +8430,218 @@ function KnowledgeScreen({
             className="button primary"
             onClick={() => void importDocuments()}
             disabled={!bridge}
-            title="选择单个或多个文档文件"
+            title="选择单个或多个文档文件导入"
           >
-            <Plus size={17} /> 导入文件
+            <Plus size={16} /> 导入文件
           </button>
         </div>
       </header>
 
+      {/* 顶部统计卡片 */}
       <div className="knowledge-summary">
-        <div>
-          <Library size={20} />
+        <div className="summary-stat-box">
+          <Library size={22} />
           <span>
             <strong>{documents.length} 份文档</strong>
-            <small>MD / TXT / Word / PDF · 路径引用</small>
+            <small>已登记的全局证据文档</small>
           </span>
         </div>
-        <div>
-          <Gauge size={20} />
+        <div className="summary-stat-box">
+          <Gauge size={22} />
           <span>
-            <strong>本地关键词检索</strong>
-            <small>BM25 + 中文二元组 · 无云端依赖</small>
+            <strong>本地关键词与向量检索</strong>
+            <small>BM25 + 中文切词 · 毫秒级匹配</small>
           </span>
         </div>
-        {missingCount > 0 && (
-          <div className="warn-tile">
-            <ShieldAlert size={20} />
+        {missingCount > 0 ? (
+          <div className="summary-stat-box warn-tile">
+            <ShieldAlert size={22} />
             <span>
               <strong>{missingCount} 份已失效</strong>
-              <small>原文件被移动或删除</small>
+              <small>源文件已被移走或删除</small>
+            </span>
+          </div>
+        ) : (
+          <div className="summary-stat-box success-tile">
+            <Check size={22} />
+            <span>
+              <strong>全部文档可用</strong>
+              <small>所有路径校验正常</small>
             </span>
           </div>
         )}
       </div>
 
-      <div className="document-list">
-        {documents.length === 0 ? (
-          <div className="empty-hint knowledge-empty-dropzone">
-            <UploadCloud size={32} />
-            <p>库里还没有文档。可点击右上角「导入文件」、「导入文件夹」，或<strong>直接把文件/文件夹拖拽至此</strong>。</p>
-            <small>支持 .md / .txt / .docx / .pdf，仅登记路径引用，不复制源文件。</small>
-          </div>
-        ) : (
-          documents.map((doc) => (
-            <div
-              className={`document-row ${doc.exists ? "" : "missing"}`}
-              key={doc.id}
-            >
-              <span className="file-icon">
-                <FileText size={19} />
-              </span>
-              <span className="document-main">
-                {renamingDoc?.id === doc.id ? (
-                  <form
-                    className="rename-form"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      void commitRename();
-                    }}
-                  >
-                    <input
-                      autoFocus
-                      value={renamingDoc.value}
-                      onChange={(event) =>
-                        setRenamingDoc({ ...renamingDoc, value: event.target.value })
-                      }
-                      onBlur={() => setRenamingDoc(null)}
-                    />
-                  </form>
-                ) : (
-                  <strong
-                    className="doc-name"
-                    onDoubleClick={() =>
-                      setRenamingDoc({ id: doc.id, value: doc.name })
-                    }
-                    title="双击重命名"
-                  >
-                    {doc.name}
-                  </strong>
-                )}
-                <small title={doc.path}>
-                  {doc.exists
-                    ? `${formatBytes(doc.size)} · ${doc.path}`
-                    : `原文件已移动或删除 · ${doc.path}`}
-                </small>
-              </span>
-              {doc.exists ? (
-                <span className="ready-badge">
-                  <Check size={13} /> 可检索
-                </span>
-              ) : (
-                <span className="missing-badge">
-                  <ShieldAlert size={13} /> 已失效
-                </span>
+      {/* 知识库主卡片 */}
+      <div className="knowledge-main-card">
+        {/* 工具栏：搜索 + 状态过滤 */}
+        <div className="knowledge-toolbar">
+          <div className="toolbar-search-group">
+            <div className="knowledge-search-input">
+              <Search size={14} />
+              <input
+                placeholder="搜索文档名称或路径..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  className="icon-button small"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <X size={12} />
+                </button>
               )}
-              <button
-                className="button ghost small"
-                onClick={() => setRenamingDoc({ id: doc.id, value: doc.name })}
-              >
-                重命名
-              </button>
-              <button
-                className="button ghost small"
-                onClick={() => void previewDoc(doc)}
-              >
-                预览
-              </button>
-              <button
-                className="icon-button"
-                aria-label="从库中移除"
-                onClick={() => void removeDoc(doc)}
-              >
-                <X size={16} />
-              </button>
             </div>
-          ))
-        )}
+            <div className="knowledge-filter-pills">
+              <button
+                type="button"
+                className={`filter-pill ${filterTab === "all" ? "active" : ""}`}
+                onClick={() => setFilterTab("all")}
+              >
+                全部 ({documents.length})
+              </button>
+              <button
+                type="button"
+                className={`filter-pill ${filterTab === "ready" ? "active" : ""}`}
+                onClick={() => setFilterTab("ready")}
+              >
+                可检索 ({readyCount})
+              </button>
+              {missingCount > 0 && (
+                <button
+                  type="button"
+                  className={`filter-pill warn ${filterTab === "missing" ? "active" : ""}`}
+                  onClick={() => setFilterTab("missing")}
+                >
+                  已失效 ({missingCount})
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 文档列表区 */}
+        <div className="knowledge-doc-container">
+          {documents.length === 0 ? (
+            <div className="empty-hint knowledge-empty-dropzone">
+              <UploadCloud size={40} />
+              <p>知识库还没有文档。点击上方<strong>「导入文件 / 文件夹」</strong>或<strong>直接拖拽文件到这里</strong>。</p>
+              <small>支持 .md / .txt / .docx / .pdf 格式，按原路径快速索引，不占用冗余磁盘空间。</small>
+            </div>
+          ) : filteredDocs.length === 0 ? (
+            <div className="empty-hint" style={{ padding: "48px 20px" }}>
+              <p>未找到符合条件的文档</p>
+              {searchQuery && (
+                <button
+                  className="button secondary small"
+                  style={{ marginTop: 10 }}
+                  onClick={() => setSearchQuery("")}
+                >
+                  清空搜索
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="knowledge-doc-rows">
+              {filteredDocs.map((doc) => (
+                <div
+                  className={`knowledge-doc-row ${doc.exists ? "" : "missing"}`}
+                  key={doc.id}
+                >
+                  <div className="doc-row-icon">
+                    <FileText size={18} />
+                  </div>
+                  <div className="doc-row-content">
+                    {renamingDoc?.id === doc.id ? (
+                      <form
+                        className="rename-form"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          void commitRename();
+                        }}
+                      >
+                        <input
+                          autoFocus
+                          value={renamingDoc.value}
+                          onChange={(event) =>
+                            setRenamingDoc({ ...renamingDoc, value: event.target.value })
+                          }
+                          onBlur={() => void commitRename()}
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") setRenamingDoc(null);
+                          }}
+                        />
+                      </form>
+                    ) : (
+                      <div className="doc-name-line">
+                        <strong
+                          className="doc-name"
+                          onDoubleClick={() =>
+                            setRenamingDoc({ id: doc.id, value: doc.name })
+                          }
+                          title="双击可重命名"
+                        >
+                          {doc.name}
+                        </strong>
+                      </div>
+                    )}
+                    <div className="doc-row-meta">
+                      <span>{doc.exists ? formatBytes(doc.size) : "大小未知"}</span>
+                      <span className="dot-divider">·</span>
+                      <span className="doc-path-text" title={doc.path}>
+                        {doc.path}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="doc-row-status">
+                    {doc.exists ? (
+                      <span className="ready-badge">
+                        <Check size={12} /> 可检索
+                      </span>
+                    ) : (
+                      <span className="missing-badge">
+                        <ShieldAlert size={12} /> 已失效
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="doc-row-actions">
+                    <button
+                      type="button"
+                      className="button ghost small"
+                      onClick={() => void previewDoc(doc)}
+                      title="预览文档内容"
+                    >
+                      预览
+                    </button>
+                    <button
+                      type="button"
+                      className="button ghost small"
+                      onClick={() => setRenamingDoc({ id: doc.id, value: doc.name })}
+                      title="重命名显示名称"
+                    >
+                      <Pencil size={12} /> 改名
+                    </button>
+                    <button
+                      type="button"
+                      className="button ghost small danger"
+                      aria-label="从库中移除"
+                      onClick={() => void removeDoc(doc)}
+                      title="从知识库移除（原文件仍保留在磁盘上）"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* 文档内容预览弹窗 */}
       {preview && (
         <div className="preview-overlay" onClick={() => setPreview(null)}>
           <div className="preview-panel" onClick={(e) => e.stopPropagation()}>
@@ -8454,7 +8659,7 @@ function KnowledgeScreen({
   );
 }
 
-// 项目页：项目增删改 + 维护每个项目的"可用资料"（从全局库勾选）。
+// 项目页：项目增删改 + 维护每个项目的"可用资料"（Master-Detail 两栏布局）。
 function ProjectsScreen({
   projects,
   documents,
@@ -8471,14 +8676,31 @@ function ProjectsScreen({
   onNotify: (value: string) => void;
 }) {
   const bridge = window.meetingCopilot;
-  const [newProject, setNewProject] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
   const [memberIds, setMemberIds] = useState<string[]>([]);
   const [editingName, setEditingName] = useState<{ id: string; value: string } | null>(
     null,
   );
-  const active = projects.find((p) => p.id === activeProjectId) || null;
-
   const [isDragging, setIsDragging] = useState(false);
+
+  // 「从知识库挑选」模态框状态
+  const [isPickModalOpen, setIsPickModalOpen] = useState(false);
+  const [pickerSelectedIds, setPickerSelectedIds] = useState<string[]>([]);
+  const [pickerSearch, setPickerSearch] = useState("");
+
+  // 默认激活项守护：如果有项目但当前未选中或选中的不存在，自动选中第一个
+  useEffect(() => {
+    if (projects.length > 0) {
+      if (!activeProjectId || !projects.some((p) => p.id === activeProjectId)) {
+        onSelectProject(projects[0].id);
+      }
+    } else if (activeProjectId) {
+      onSelectProject(null);
+    }
+  }, [projects, activeProjectId, onSelectProject]);
+
+  const active = projects.find((p) => p.id === activeProjectId) || null;
 
   // 载入选中项目的可用资料勾选
   useEffect(() => {
@@ -8489,11 +8711,15 @@ function ProjectsScreen({
     void bridge.getProjectDocuments(activeProjectId).then(setMemberIds).catch(() => {});
   }, [activeProjectId, projects]);
 
+  // 当前项目关联的文档列表
+  const projectDocs = documents.filter((doc) => memberIds.includes(doc.id));
+
   async function createProject() {
-    const name = newProject.trim();
+    const name = newProjectName.trim();
     if (!name || !bridge) return;
     const project = await bridge.saveProject({ name });
-    setNewProject("");
+    setNewProjectName("");
+    setIsCreateModalOpen(false);
     await onRefresh();
     onSelectProject(project.id);
     onNotify(`已创建项目「${name}」`);
@@ -8514,17 +8740,43 @@ function ProjectsScreen({
     await bridge.deleteProject(project.id);
     if (activeProjectId === project.id) onSelectProject(null);
     await onRefresh();
-    onNotify(`已删除项目「${project.name}」（历史会议记录保留）`);
+    onNotify(`已删除项目「${project.name}」（知识库文档与历史会议均已保留）`);
   }
 
-  async function toggleMember(docId: string) {
+  // 从本项目移除某份文档关联
+  async function removeMember(doc: KnowledgeDocument) {
     if (!bridge || !activeProjectId) return;
-    const next = memberIds.includes(docId)
-      ? memberIds.filter((id) => id !== docId)
-      : [...memberIds, docId];
+    const next = memberIds.filter((id) => id !== doc.id);
     setMemberIds(next);
     await bridge.setProjectDocuments(activeProjectId, next);
-    await onRefresh(); // 刷新项目的文档计数
+    await onRefresh();
+    onNotify(`已从本项目移除「${doc.name}」（原文档保留在知识库中）`);
+  }
+
+  // 打开从知识库挑选弹窗
+  function openPickModal() {
+    setPickerSelectedIds([...memberIds]);
+    setPickerSearch("");
+    setIsPickModalOpen(true);
+  }
+
+  // 弹窗中切换单选
+  function togglePickerDoc(docId: string) {
+    setPickerSelectedIds((current) =>
+      current.includes(docId)
+        ? current.filter((id) => id !== docId)
+        : [...current, docId],
+    );
+  }
+
+  // 保存弹窗中的勾选结果
+  async function savePickedDocs() {
+    if (!bridge || !activeProjectId) return;
+    await bridge.setProjectDocuments(activeProjectId, pickerSelectedIds);
+    setMemberIds(pickerSelectedIds);
+    setIsPickModalOpen(false);
+    await onRefresh();
+    onNotify(`已更新项目可用资料（共 ${pickerSelectedIds.length} 份）`);
   }
 
   async function importForProject() {
@@ -8575,9 +8827,18 @@ function ProjectsScreen({
     const files = Array.from(event.dataTransfer.files || []);
     if (!files.length) return;
     const filePaths = files
-      .map((f) => (f as unknown as { path?: string }).path || "")
+      .map((f) => {
+        if (bridge?.getPathForFile) {
+          const p = bridge.getPathForFile(f);
+          if (p) return p;
+        }
+        return (f as unknown as { path?: string }).path || "";
+      })
       .filter(Boolean);
-    if (!filePaths.length) return;
+    if (!filePaths.length) {
+      onNotify("未能获取拖拽文件路径，请点击上方「导入文件」选择");
+      return;
+    }
     const result = await bridge.addDocumentPaths(filePaths, activeProjectId);
     await onRefresh();
     const updatedMemberIds = await bridge.getProjectDocuments(activeProjectId);
@@ -8608,6 +8869,12 @@ function ProjectsScreen({
     setIsDragging(false);
   }
 
+  // 弹窗搜索过滤
+  const filteredPickerDocs = documents.filter((doc) => {
+    if (!pickerSearch.trim()) return true;
+    return doc.name.toLowerCase().includes(pickerSearch.trim().toLowerCase());
+  });
+
   return (
     <div
       className={`page projects-page ${isDragging ? "dragging-over" : ""}`}
@@ -8619,169 +8886,465 @@ function ProjectsScreen({
         <div className="knowledge-drag-overlay">
           <UploadCloud size={44} />
           <strong>释放以导入文档到项目「{active.name}」</strong>
-          <span>自动登记知识库并自动勾选关联到此项目</span>
+          <span>自动登记知识库并关联到此项目</span>
         </div>
       )}
+
       <header className="page-heading">
         <div>
-          <div className="eyebrow">按项目组织</div>
+          <div className="eyebrow">业务空间</div>
           <h1>项目</h1>
           <p>
-            每个项目挑选自己的可用资料。会议归到项目后，只检索该项目选中的文档，
-            不会串用其它项目的内容。
+            为项目归集专属可用资料。会议绑定项目后仅检索本项目选中的文档，互不干扰。
           </p>
+        </div>
+        <div className="page-heading-actions">
+          <button
+            className="button primary"
+            onClick={() => {
+              setNewProjectName("");
+              setIsCreateModalOpen(true);
+            }}
+          >
+            <Plus size={16} /> 新建项目
+          </button>
         </div>
       </header>
 
-      <div className="project-bar">
-        <div className="project-picker">
-          {projects.map((project) => (
-            <button
-              key={project.id}
-              className={`project-chip ${
-                project.id === activeProjectId ? "active" : ""
-              }`}
-              onClick={() => onSelectProject(project.id)}
-            >
-              <strong>{project.name}</strong>
-              <small>
-                {project.documentCount} 份资料 · {project.meetingCount} 场会议
-              </small>
-            </button>
-          ))}
-        </div>
-        <div className="project-create">
-          <input
-            value={newProject}
-            placeholder="新建项目名称"
-            onChange={(event) => setNewProject(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") void createProject();
-            }}
-          />
-          <button
-            className="button secondary"
-            onClick={() => void createProject()}
-            disabled={!newProject.trim() || !bridge}
-          >
-            新建项目
-          </button>
-        </div>
-      </div>
-
-      {!active ? (
-        <div className="empty-hint">
-          {projects.length === 0
-            ? "还没有项目。新建一个项目，再从知识库里为它挑选可用资料。"
-            : "选择上方一个项目，维护它的名称与可用资料。"}
-        </div>
-      ) : (
-        <>
-          <div className="project-detail-head">
-            {editingName?.id === active.id ? (
-              <form
-                className="rename-form"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void renameProject();
-                }}
-              >
-                <input
-                  autoFocus
-                  value={editingName.value}
-                  onChange={(e) =>
-                    setEditingName({ ...editingName, value: e.target.value })
-                  }
-                  onBlur={() => void renameProject()}
-                />
-              </form>
-            ) : (
-              <h2>
-                {active.name}
-                <button
-                  className="icon-button"
-                  onClick={() => setEditingName({ id: active.id, value: active.name })}
-                  title="重命名项目"
-                >
-                  <FileText size={14} /> 改名
-                </button>
-              </h2>
-            )}
-            <button
-              className="button ghost small danger"
-              onClick={() => void removeProject(active)}
-            >
-              删除项目
-            </button>
-          </div>
-
-          <div className="project-docs-head">
-            <h3 className="list-heading">
-              可用资料
-              <span>从全局库勾选本项目要用的文档（{memberIds.length} 份已选）</span>
-            </h3>
-            <div className="project-docs-actions">
-              <button
-                className="button secondary small"
-                onClick={() => void importFolderForProject()}
-                disabled={!bridge}
-                title="选择文件夹导入并自动关联到此项目"
-              >
-                <FolderPlus size={14} /> 导入文件夹
-              </button>
-              <button
-                className="button primary small"
-                onClick={() => void importForProject()}
-                disabled={!bridge}
-                title="选择文件导入并自动关联到此项目"
-              >
-                <Plus size={14} /> 导入文件
-              </button>
+      <div className="projects-layout">
+        {/* 左侧：项目导航列表 */}
+        <aside className="projects-sidebar">
+          <div className="projects-sidebar-header">
+            <div className="sidebar-title">
+              <FolderKanban size={15} />
+              <span>所有项目</span>
+              <span className="count-pill">{projects.length}</span>
             </div>
           </div>
-          <div className="document-list">
-            {documents.length === 0 ? (
-              <div className="empty-hint knowledge-empty-dropzone">
-                <UploadCloud size={32} />
-                <p>知识库还没有文档。可直接点击上方「导入文件 / 文件夹」或<strong>直接拖拽文件到这里</strong>，将自动导入并关联到当前项目。</p>
+
+          <div className="projects-nav-list">
+            {projects.length === 0 ? (
+              <div className="projects-sidebar-empty">
+                <p>还没有项目</p>
+                <button
+                  className="button secondary small"
+                  onClick={() => {
+                    setNewProjectName("");
+                    setIsCreateModalOpen(true);
+                  }}
+                >
+                  <Plus size={13} /> 新建第一个项目
+                </button>
               </div>
             ) : (
-              documents.map((doc) => {
-                const checked = memberIds.includes(doc.id);
+              projects.map((project) => {
+                const isActive = project.id === activeProjectId;
                 return (
-                  <label
-                    className={`document-check ${doc.exists ? "" : "missing"}`}
-                    key={doc.id}
+                  <button
+                    key={project.id}
+                    type="button"
+                    className={`project-nav-item ${isActive ? "active" : ""}`}
+                    onClick={() => onSelectProject(project.id)}
                   >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => void toggleMember(doc.id)}
-                    />
-                    <span className="custom-check">
-                      <Check size={13} />
-                    </span>
-                    <FileText size={17} />
-                    <span>
-                      <strong>{doc.name}</strong>
-                      <small>
-                        {doc.exists
-                          ? `${formatBytes(doc.size)}`
-                          : "⚠️ 原文件已失效"}
-                      </small>
-                    </span>
-                  </label>
+                    <div className="project-nav-main">
+                      <strong className="project-nav-name">{project.name}</strong>
+                    </div>
+                    <div className="project-nav-meta">
+                      <span>{project.documentCount} 份资料</span>
+                      <span className="dot-divider">·</span>
+                      <span>{project.meetingCount} 场会议</span>
+                    </div>
+                  </button>
                 );
               })
             )}
           </div>
-        </>
+        </aside>
+
+        {/* 右侧：项目工作区 */}
+        <main className="project-main-panel">
+          {!active ? (
+            <div className="empty-hint projects-empty-panel">
+              <FolderKanban size={40} />
+              <h3>{projects.length === 0 ? "开始创建你的第一个项目" : "请选择一个项目"}</h3>
+              <p>
+                {projects.length === 0
+                  ? "新建项目后，可从知识库中勾选该项目的专属资料，让 AI 在评审时只引用该业务背景。"
+                  : "在左侧列表中点击选择项目，维护其名称和关联的可用资料。"}
+              </p>
+              {projects.length === 0 && (
+                <button
+                  className="button primary"
+                  onClick={() => {
+                    setNewProjectName("");
+                    setIsCreateModalOpen(true);
+                  }}
+                >
+                  <Plus size={15} /> 新建项目
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="project-detail-card">
+              {/* 项目卡片头部：名称编辑与删除 */}
+              <div className="project-card-header">
+                <div className="project-title-area">
+                  {editingName?.id === active.id ? (
+                    <form
+                      className="rename-form"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void renameProject();
+                      }}
+                    >
+                      <input
+                        autoFocus
+                        value={editingName.value}
+                        onChange={(e) =>
+                          setEditingName({ ...editingName, value: e.target.value })
+                        }
+                        onBlur={() => void renameProject()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") setEditingName(null);
+                        }}
+                      />
+                    </form>
+                  ) : (
+                    <div className="project-title-row">
+                      <h2>{active.name}</h2>
+                      <button
+                        className="icon-button"
+                        onClick={() =>
+                          setEditingName({ id: active.id, value: active.name })
+                        }
+                        title="重命名项目"
+                      >
+                        <Pencil size={14} /> 改名
+                      </button>
+                    </div>
+                  )}
+                  <div className="project-subtitle-meta">
+                    <span className="meta-badge">
+                      {projectDocs.length} 份可用资料
+                    </span>
+                    <span className="meta-badge">
+                      {active.meetingCount} 场关联会议
+                    </span>
+                  </div>
+                </div>
+
+                <div className="project-card-actions">
+                  <button
+                    className="button ghost small danger"
+                    onClick={() => void removeProject(active)}
+                    title="删除此项目（知识库实际文档与会议记录仍会保留）"
+                  >
+                    <Trash2 size={13} /> 删除项目
+                  </button>
+                </div>
+              </div>
+
+              {/* 可用资料管理区：仅展示本项目关联的文档 */}
+              <div className="project-docs-card">
+                <div className="project-docs-toolbar">
+                  <div className="toolbar-left">
+                    <h3 className="section-title">
+                      可用资料
+                      <span className="sub-count">
+                        （本项目共 {projectDocs.length} 份）
+                      </span>
+                    </h3>
+                  </div>
+
+                  <div className="toolbar-right">
+                    <button
+                      className="button secondary small"
+                      onClick={openPickModal}
+                      title="从全局知识库中勾选已有文档关联到此项目"
+                    >
+                      <Library size={14} /> 从知识库挑选
+                    </button>
+                    <button
+                      className="button secondary small"
+                      onClick={() => void importFolderForProject()}
+                      disabled={!bridge}
+                      title="选择文件夹导入并自动关联到此项目"
+                    >
+                      <FolderPlus size={14} /> 导入文件夹
+                    </button>
+                    <button
+                      className="button primary small"
+                      onClick={() => void importForProject()}
+                      disabled={!bridge}
+                      title="选择文件导入并自动关联到此项目"
+                    >
+                      <Plus size={14} /> 导入文件
+                    </button>
+                  </div>
+                </div>
+
+                <div className="project-docs-container">
+                  {projectDocs.length === 0 ? (
+                    <div className="empty-hint project-docs-empty">
+                      <BookOpen size={36} />
+                      <p>
+                        本项目暂未关联任何参考资料。可点击上方<strong>「从知识库挑选」</strong>已有文档，或直接<strong>「导入文件 / 文件夹」</strong>。
+                      </p>
+                      <div className="empty-actions" style={{ marginTop: 12, display: "flex", gap: 10 }}>
+                        <button
+                          className="button secondary small"
+                          onClick={openPickModal}
+                        >
+                          <Library size={14} /> 从知识库挑选
+                        </button>
+                        <button
+                          className="button primary small"
+                          onClick={() => void importForProject()}
+                          disabled={!bridge}
+                        >
+                          <Plus size={14} /> 导入本地文件
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="project-doc-rows">
+                      {projectDocs.map((doc) => (
+                        <div
+                          className={`project-doc-row ${doc.exists ? "" : "missing"}`}
+                          key={doc.id}
+                        >
+                          <div className="project-doc-main">
+                            <FileText size={17} />
+                            <div className="project-doc-texts">
+                              <strong className="doc-name">{doc.name}</strong>
+                              <small className="doc-meta">
+                                {doc.exists
+                                  ? `${formatBytes(doc.size)}`
+                                  : "⚠️ 原文件已移动或删除，无法检索"}
+                              </small>
+                            </div>
+                          </div>
+                          <div className="project-doc-row-actions">
+                            <button
+                              type="button"
+                              className="button ghost small danger"
+                              onClick={() => void removeMember(doc)}
+                              title="从本项目中移除（原文件仍完好保留在知识库中）"
+                            >
+                              <Trash2 size={13} /> 移除
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* 「从知识库挑选文档」Modal 模态框 */}
+      {isPickModalOpen && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setIsPickModalOpen(false)}
+        >
+          <div
+            className="modal-card doc-picker-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-labelledby="pick-docs-title"
+          >
+            <div className="modal-header">
+              <h3 id="pick-docs-title">从知识库挑选可用资料</h3>
+              <button
+                className="icon-button"
+                onClick={() => setIsPickModalOpen(false)}
+                title="关闭"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body doc-picker-body">
+              <div className="picker-search-bar">
+                <Search size={15} />
+                <input
+                  autoFocus
+                  placeholder="搜索知识库文档名称..."
+                  value={pickerSearch}
+                  onChange={(e) => setPickerSearch(e.target.value)}
+                />
+                {pickerSearch && (
+                  <button
+                    className="icon-button small"
+                    onClick={() => setPickerSearch("")}
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              <div className="picker-toolbar-sub">
+                <span>
+                  已选择 <strong>{pickerSelectedIds.length}</strong> / 知识库共 {documents.length} 份
+                </span>
+                <div className="picker-quick-ops">
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={() => {
+                      const allIds = documents.filter((d) => d.exists).map((d) => d.id);
+                      setPickerSelectedIds(allIds);
+                    }}
+                    disabled={documents.filter((d) => d.exists).length === 0}
+                  >
+                    全选
+                  </button>
+                  <span className="action-sep">|</span>
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={() => setPickerSelectedIds([])}
+                    disabled={pickerSelectedIds.length === 0}
+                  >
+                    全部取消
+                  </button>
+                </div>
+              </div>
+
+              <div className="picker-doc-scroll">
+                {documents.length === 0 ? (
+                  <div className="empty-hint" style={{ padding: "30px 16px" }}>
+                    知识库目前为空。可先去「知识库」页导入，或直接在项目内导入文件。
+                  </div>
+                ) : filteredPickerDocs.length === 0 ? (
+                  <div className="empty-hint" style={{ padding: "30px 16px" }}>
+                    未找到匹配「{pickerSearch}」的文档
+                  </div>
+                ) : (
+                  filteredPickerDocs.map((doc) => {
+                    const isChecked = pickerSelectedIds.includes(doc.id);
+                    return (
+                      <label
+                        key={doc.id}
+                        className={`document-check ${doc.exists ? "" : "missing"} ${
+                          isChecked ? "selected" : ""
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked && doc.exists}
+                          disabled={!doc.exists}
+                          onChange={() => togglePickerDoc(doc.id)}
+                        />
+                        <span className="custom-check">
+                          <Check size={13} />
+                        </span>
+                        <FileText size={17} />
+                        <span>
+                          <strong>{doc.name}</strong>
+                          <small>
+                            {doc.exists ? formatBytes(doc.size) : "⚠️ 原文件已失效"}
+                          </small>
+                        </span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => setIsPickModalOpen(false)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="button primary"
+                onClick={() => void savePickedDocs()}
+              >
+                确定保存（已选 {pickerSelectedIds.length} 份）
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 新建项目 Modal 模态框 */}
+      {isCreateModalOpen && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setIsCreateModalOpen(false)}
+        >
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-labelledby="new-project-title"
+          >
+            <div className="modal-header">
+              <h3 id="new-project-title">新建项目</h3>
+              <button
+                className="icon-button"
+                onClick={() => setIsCreateModalOpen(false)}
+                title="关闭"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void createProject();
+              }}
+            >
+              <div className="modal-body">
+                <label className="field">
+                  <span>项目名称</span>
+                  <input
+                    autoFocus
+                    value={newProjectName}
+                    placeholder="例如：电商后台重构、支付网关对接"
+                    onChange={(e) => setNewProjectName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setIsCreateModalOpen(false);
+                    }}
+                  />
+                  <small className="field-hint">
+                    创建后可为项目勾选专属资料，开会时选定该项目即可精准检索。
+                  </small>
+                </label>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="button ghost"
+                  onClick={() => setIsCreateModalOpen(false)}
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  className="button primary"
+                  disabled={!newProjectName.trim() || !bridge}
+                >
+                  创建项目
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
-/** 专有名词独立页：通用词 + 按项目维护，不与知识库/项目页混排。 */
+/** 专有名词独立页：通用词 + 按项目维护（Master-Detail 两栏布局）。 */
 function GlossaryScreen({
   projects,
   activeProjectId,
@@ -8793,93 +9356,124 @@ function GlossaryScreen({
   onSelectProject: (id: string | null) => void;
   onNotify: (value: string) => void;
 }) {
-  const [tab, setTab] = useState<"general" | "project">("general");
-  const projectId =
+  const [selectedScope, setSelectedScope] = useState<"general" | string>(
     activeProjectId && projects.some((p) => p.id === activeProjectId)
       ? activeProjectId
-      : projects[0]?.id || null;
+      : "general",
+  );
 
-  useEffect(() => {
-    if (tab === "project" && !activeProjectId && projects[0]) {
-      onSelectProject(projects[0].id);
-    }
-  }, [tab, activeProjectId, projects, onSelectProject]);
+  const activeProject =
+    selectedScope !== "general"
+      ? projects.find((p) => p.id === selectedScope) || null
+      : null;
+
+  function selectGeneral() {
+    setSelectedScope("general");
+  }
+
+  function selectProject(projId: string) {
+    setSelectedScope(projId);
+    onSelectProject(projId);
+  }
 
   return (
-    <div className="page">
+    <div className="page glossary-page">
       <header className="page-heading">
         <div>
           <div className="eyebrow">ASR 热词</div>
           <h1>专有名词</h1>
           <p>
-            维护产品名、项目黑话、客户口头简称等。开会时自动合并「通用 +
-            本场项目」（同名以项目词为准）。词库始终可编辑；是否被转写服务读取，
-            取决于设置里当前选择的供应商。
+            维护产品名、业务黑话、客户简称等。开会时自动合并「通用 +
+            本场项目」（同名以项目词为准），大幅提高语音识别准确率。
           </p>
         </div>
       </header>
 
-      <div className="glossary-tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          className={tab === "general" ? "active" : ""}
-          aria-selected={tab === "general"}
-          onClick={() => setTab("general")}
-        >
-          通用名词
-        </button>
-        <button
-          type="button"
-          role="tab"
-          className={tab === "project" ? "active" : ""}
-          aria-selected={tab === "project"}
-          onClick={() => setTab("project")}
-        >
-          项目名词
-        </button>
-      </div>
-
-      {tab === "general" ? (
-        <GlossaryPanel
-          scope="general"
-          title="通用专有名词"
-          description="所有会议都会带上；与项目词合并时，同名以项目词为准"
-          onNotify={onNotify}
-        />
-      ) : projects.length === 0 ? (
-        <div className="empty-hint">
-          还没有项目。请先到「项目」页新建，再回来维护该项目的专有名词。
-        </div>
-      ) : (
-        <>
-          <div className="project-picker glossary-project-picker">
-            {projects.map((project) => (
-              <button
-                key={project.id}
-                type="button"
-                className={`project-chip ${
-                  project.id === projectId ? "active" : ""
-                }`}
-                onClick={() => onSelectProject(project.id)}
-              >
-                <strong>{project.name}</strong>
-                <small>{project.meetingCount} 场会议</small>
-              </button>
-            ))}
+      <div className="glossary-layout">
+        {/* 左侧侧边栏：词库范围选择 */}
+        <aside className="glossary-sidebar">
+          <div className="glossary-sidebar-header">
+            <div className="sidebar-title">
+              <Tags size={15} />
+              <span>词库范围</span>
+            </div>
           </div>
-          {projectId ? (
+
+          <div className="glossary-nav-list">
+            {/* 通用词库导航项 */}
+            <button
+              type="button"
+              className={`glossary-nav-item ${
+                selectedScope === "general" ? "active" : ""
+              }`}
+              onClick={selectGeneral}
+            >
+              <div className="glossary-nav-main">
+                <strong className="glossary-nav-name">🌐 全局通用名词</strong>
+              </div>
+              <div className="glossary-nav-meta">
+                <span>全部会议均会自动生效</span>
+              </div>
+            </button>
+
+            {/* 分隔区 */}
+            <div className="glossary-nav-section-title">
+              <span>项目专属词库</span>
+              <span className="count-pill">{projects.length}</span>
+            </div>
+
+            {projects.length === 0 ? (
+              <div className="glossary-sidebar-empty">
+                <p>暂无项目</p>
+                <small>请先在「项目」页创建项目</small>
+              </div>
+            ) : (
+              projects.map((project) => {
+                const isActive = selectedScope === project.id;
+                return (
+                  <button
+                    key={project.id}
+                    type="button"
+                    className={`glossary-nav-item ${isActive ? "active" : ""}`}
+                    onClick={() => selectProject(project.id)}
+                  >
+                    <div className="glossary-nav-main">
+                      <strong className="glossary-nav-name">{project.name}</strong>
+                    </div>
+                    <div className="glossary-nav-meta">
+                      <span>{project.meetingCount} 场关联会议</span>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </aside>
+
+        {/* 右侧工作区：专有名词面板 */}
+        <main className="glossary-main-panel">
+          {selectedScope === "general" ? (
             <GlossaryPanel
-              scope={projectId}
-              title="本项目专有名词"
-              description={`仅项目「${
-                projects.find((p) => p.id === projectId)?.name || ""
-              }」开会时叠加；与通用词同名时以这里为准`}
+              scope="general"
+              title="🌐 全局通用专有名词"
+              description="所有会议都会自动叠加；若与项目词同名，则以项目词为准"
               onNotify={onNotify}
             />
-          ) : null}
-        </>
-      )}
+          ) : activeProject ? (
+            <GlossaryPanel
+              scope={activeProject.id}
+              title={`📁 ${activeProject.name} · 专属专有名词`}
+              description={`仅在「${activeProject.name}」相关会议时叠加；同名时优先覆盖全局通用词`}
+              onNotify={onNotify}
+            />
+          ) : (
+            <div className="empty-hint glossary-empty-panel">
+              <Tags size={40} />
+              <h3>请在左侧选择一个词库范围</h3>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

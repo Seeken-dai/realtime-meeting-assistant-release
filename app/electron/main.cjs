@@ -839,6 +839,7 @@ function createFloatingWindow() {
     },
   });
   floatingWindow.setAlwaysOnTop(true, "floating");
+  floatingWindow.setContentProtection(true);
   floatingWindow._expandedHeight = 280;
   floatingWindow.on("closed", () => {
     floatingWindow = undefined;
@@ -939,6 +940,9 @@ app.whenReady().then(() => {
     }
     if (typeof preferences.alwaysOnTop === "boolean") {
       floatingWindow.setAlwaysOnTop(preferences.alwaysOnTop, "floating");
+    }
+    if (typeof preferences.contentProtection === "boolean") {
+      floatingWindow.setContentProtection(preferences.contentProtection);
     }
     if (typeof preferences.collapsed === "boolean") {
       const bounds = floatingWindow.getBounds();

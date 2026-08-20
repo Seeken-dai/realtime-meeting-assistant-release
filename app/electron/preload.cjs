@@ -1,6 +1,16 @@
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
 contextBridge.exposeInMainWorld("meetingCopilot", {
+  getPathForFile: (file) => {
+    try {
+      if (webUtils && typeof webUtils.getPathForFile === "function") {
+        return webUtils.getPathForFile(file);
+      }
+      return (file && file.path) || "";
+    } catch {
+      return (file && file.path) || "";
+    }
+  },
   runtimeStatus: () => ipcRenderer.invoke("runtime:status"),
   listInputDevices: () => ipcRenderer.invoke("meeting:list-input-devices"),
   testInputDevice: (device) => ipcRenderer.invoke("meeting:test-input-device", device),

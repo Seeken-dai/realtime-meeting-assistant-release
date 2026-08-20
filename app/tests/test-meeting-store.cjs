@@ -16,6 +16,13 @@ const {
   deleteGlossaryTerm,
   listGlossaryTermsForMeeting,
   saveProject,
+  deleteProject,
+  listProjects,
+  addDocuments,
+  listLibraryDocuments,
+  listDocuments,
+  getProjectDocumentIds,
+  removeDocument,
   listMeetingMemoryItems,
   listGlossaryCandidates,
   generateMeetingReview,
@@ -448,6 +455,31 @@ deleteGlossaryTerm(dbPath, generalA.id);
 deleteGlossaryTerm(dbPath, generalB.id);
 deleteGlossaryTerm(dbPath, projectTerm.id);
 assert.equal(listGlossaryTerms(dbPath, "all").length, 0);
+
+
+// ── 项目删除时保留全局知识库文档 ──
+const sampleDocPath = path.join(root, "项目业务规则.md");
+fs.writeFileSync(sampleDocPath, "# 业务规则\n\n1. 测试文档内容");
+const docProject = saveProject(dbPath, { name: "知识库测试项目" });
+const importResult = addDocuments(dbPath, docProject.id, [sampleDocPath]);
+assert.equal(importResult.added, 1);
+assert.equal(listLibraryDocuments(dbPath).some((d) => d.name === "项目业务规则.md"), true);
+assert.equal(listDocuments(dbPath, docProject.id).length, 1);
+const projBeforeDelete = listProjects(dbPath).find((p) => p.id === docProject.id);
+assert.equal(projBeforeDelete.documentCount, 1);
+
+// 删除项目
+const deleteResult = deleteProject(dbPath, docProject.id);
+assert.equal(deleteResult.ok, true);
+assert.equal(listProjects(dbPath).some((p) => p.id === docProject.id), false);
+// 项目删除后，该文档依然完好保留在全局知识库中
+const libDocsAfter = listLibraryDocuments(dbPath);
+const preservedDoc = libDocsAfter.find((d) => d.name === "项目业务规则.md");
+assert.ok(preservedDoc);
+assert.equal(preservedDoc.path, sampleDocPath);
+// 清理测试文档
+removeDocument(dbPath, preservedDoc.id);
+assert.equal(listLibraryDocuments(dbPath).some((d) => d.name === "项目业务规则.md"), false);
 
 console.log(
   "ok: meeting store migration + transcript versions + suggestion context + evidence + cascade delete + glossary",

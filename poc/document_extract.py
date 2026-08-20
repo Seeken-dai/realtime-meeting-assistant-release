@@ -6,6 +6,13 @@ import os
 import re
 import sys
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 _SUPPORTED = {".md", ".txt", ".docx", ".pdf"}
 _MAX_FILE_BYTES = 50 * 1024 * 1024
 
@@ -96,6 +103,39 @@ def _read_docx(path):
     return text, {"pageCount": None}
 
 
+def _read_pdf_ocr(path):
+    """当 PDF 缺少字符文本层（如设计稿转曲、矢量画板、扫描件）时，使用 pypdfium2 渲染 + RapidOCR 自动识别。"""
+    try:
+        import pypdfium2 as pdfium
+        from rapidocr_onnxruntime import RapidOCR
+    except ImportError as exc:
+        raise DocumentExtractionError(
+            "PDF 没有可提取的文本层（可能是设计稿转曲或扫描件），且未安装 OCR 支持模块"
+        ) from exc
+
+    try:
+        ocr = RapidOCR()
+        with pdfium.PdfDocument(path) as pdf:
+            page_count = len(pdf)
+            pages = []
+            for index, page in enumerate(pdf, start=1):
+                bitmap = page.render(scale=1.5).to_numpy()
+                result, _ = ocr(bitmap)
+                if result:
+                    page_lines = [line[1] for line in result if line and len(line) > 1 and line[1]]
+                    page_text = _clean_text("\n".join(page_lines))
+                    if page_text:
+                        pages.append(f"## 第 {index} 页\n\n{page_text}")
+        text = "\n\n".join(pages)
+        if not _clean_text(text):
+            raise DocumentExtractionError("PDF 中未识别到有效文字内容")
+        return text, {"pageCount": page_count, "ocr": True}
+    except DocumentExtractionError:
+        raise
+    except Exception as exc:
+        raise DocumentExtractionError(f"PDF OCR 解析失败：{exc}") from exc
+
+
 def _read_pdf(path):
     try:
         import pdfplumber
@@ -104,6 +144,7 @@ def _read_pdf(path):
             "缺少 pdfplumber，请重新安装项目依赖"
         ) from exc
     pages = []
+    page_count = 0
     try:
         with pdfplumber.open(path) as pdf:
             page_count = len(pdf.pages)
@@ -113,13 +154,19 @@ def _read_pdf(path):
                 )
                 if text:
                     pages.append(f"## 第 {index} 页\n\n{text}")
-    except Exception as exc:
-        raise DocumentExtractionError(f"PDF 无法解析：{exc}") from exc
+    except Exception:
+        pass
+
     text = "\n\n".join(pages)
-    if not _clean_text(text):
-        raise DocumentExtractionError(
-            "PDF 没有可提取的文本层，可能是扫描件；第一版暂不包含 OCR"
-        )
+    # 如果纯文本层提取字数过少（小于 15 个字），自动降级使用 RapidOCR
+    if len(_clean_text(text)) < 15:
+        try:
+            return _read_pdf_ocr(path)
+        except DocumentExtractionError:
+            if not _clean_text(text):
+                raise DocumentExtractionError(
+                    "PDF 没有可提取的文本层（设计稿转曲或纯图片），且 OCR 未能识别出有效文字"
+                )
     return text, {"pageCount": page_count}
 
 

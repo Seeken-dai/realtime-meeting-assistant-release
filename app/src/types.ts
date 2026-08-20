@@ -637,6 +637,7 @@ export interface DesktopBridge {
     documents: KnowledgeDocument[];
     errors?: Array<{ name: string; message: string }>;
   }>;
+  getPathForFile?(file: File): string;
   addDocumentPaths(
     filePaths: string[],
     projectId?: string | null,
@@ -745,6 +746,7 @@ export interface DesktopBridge {
   closeFloatingStrategy(): Promise<{ ok: boolean }>;
   setFloatingStrategyPreferences(preferences: {
     alwaysOnTop?: boolean;
+    contentProtection?: boolean;
     collapsed?: boolean;
     fontSize?: "small" | "medium" | "large";
     tint?: string;

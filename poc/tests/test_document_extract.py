@@ -1,7 +1,10 @@
 """DOCX/PDF 知识解析、切片与检索的无网络回归测试。"""
 
 import os
+import sys
 import tempfile
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from docx import Document
 from reportlab.pdfgen import canvas

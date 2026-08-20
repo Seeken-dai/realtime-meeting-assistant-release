@@ -131,7 +131,7 @@ function getDatabase(databasePath) {
       name TEXT NOT NULL,
       path TEXT NOT NULL,
       added_at INTEGER NOT NULL,
-      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
     );
 
     -- 项目↔文档 多对多关联（共享库 + 项目挑选）。
@@ -375,7 +375,7 @@ function listProjects(databasePath) {
   return db
     .prepare(`
       SELECT p.id, p.name, p.note, p.created_at, p.updated_at,
-             (SELECT COUNT(*) FROM documents d WHERE d.project_id = p.id)
+             (SELECT COUNT(*) FROM project_documents pd WHERE pd.project_id = p.id)
                AS document_count,
              (SELECT COUNT(*) FROM meetings m WHERE m.project_id = p.id)
                AS meeting_count
@@ -414,6 +414,10 @@ function deleteProject(databasePath, id) {
   try {
     // 会议不级联删除：历史记录必须留存，只解除项目归属
     db.prepare("UPDATE meetings SET project_id = NULL WHERE project_id = ?").run(id);
+    // 文档不级联删除：文档属于全局知识库，项目删除只解除归属，保留在知识库中
+    db.prepare("UPDATE documents SET project_id = NULL WHERE project_id = ?").run(id);
+    // 项目与文档多对多关联解除
+    db.prepare("DELETE FROM project_documents WHERE project_id = ?").run(id);
     // 项目专有名词随项目删除（表上有 CASCADE；显式删更稳妥）
     db.prepare("DELETE FROM glossary_terms WHERE project_id = ?").run(id);
     db.prepare("DELETE FROM projects WHERE id = ?").run(id);

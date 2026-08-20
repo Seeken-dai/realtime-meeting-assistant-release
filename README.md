@@ -1,7 +1,7 @@
 # 实时会议话术助手 (Meeting Copilot) 🎙️🤖
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.1.4-blue.svg" alt="Release v0.1.4">
+  <img src="https://img.shields.io/badge/Release-v0.1.5-blue.svg" alt="Release v0.1.5">
   <img src="https://img.shields.io/badge/Platform-Windows%2010%2F11%20x64-green.svg" alt="Platform">
   <img src="https://img.shields.io/badge/Electron-43.2.0-indigo.svg" alt="Electron">
   <img src="https://img.shields.io/badge/Python-3.10%2B-yellow.svg" alt="Python">
@@ -16,11 +16,12 @@
 
 ## ✨ 核心特性
 
-### 1. 🪟 智能桌面悬浮窗（Hover-Freeze 交互）
+### 1. 🪟 智能桌面悬浮窗（Hover-Freeze 交互与投屏防窥）
+* **投屏隐形防窥**：基于 Windows 原生 `WDA_EXCLUDEFROMCAPTURE` 防捕获机制，钉钉/腾讯会议全屏投屏或录屏时悬浮窗自动透明隐形，观众端完全看不到 AI 提示，仅本机可见。
 * **双模迷你胶囊**：支持一键折叠为 38px 迷你状态，自动收缩物理窗口，不阻碍背景点击操作。
 * **防冲刷阅读**：鼠标移入时自动锁定当前策略建议，新建议在顶栏静默累积，移开后平滑刷新。
 * **信任链溯源**：每条建议均标注来源规则或知识库切片，点击可展开查看原文依据。
-* **多风格外观**：支持浅灰、半透明毛玻璃、暗黑沉浸风格无缝切换。
+* **多风格外观**：支持浅灰、半透明毛玻璃、暗黑沉浸风格无缝切换，并支持一键开启/关闭投屏防窥。
 
 ### 2. ⚡ 本地声纹区分 + 低成本流式 ASR
 * **本地声纹识别「我/对方」**：无需向云厂商购买昂贵的实时声纹分离服务，通过本地 `sherpa-onnx` 提取声纹特征，1:1 高精度识别说话人身份，区分「本人发言」与「对方提问」。
