@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld("meetingCopilot", {
     }
   },
   runtimeStatus: () => ipcRenderer.invoke("runtime:status"),
+  getActiveMeeting: () => ipcRenderer.invoke("meeting:get-active"),
   listInputDevices: () => ipcRenderer.invoke("meeting:list-input-devices"),
   testInputDevice: (device) => ipcRenderer.invoke("meeting:test-input-device", device),
   startMeeting: (options) => ipcRenderer.invoke("meeting:start", options),

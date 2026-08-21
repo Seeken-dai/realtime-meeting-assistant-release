@@ -5,6 +5,7 @@ const fsSync = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const {
+  markMeetingCompleted,
   finalizeOrphanedMeetings,
   listMeetingRecords,
   deleteMeetingRecords,
@@ -825,6 +826,7 @@ function createFloatingWindow() {
     minHeight: 38,
     frame: false,
     alwaysOnTop: true,
+    skipTaskbar: true,
     resizable: true,
     transparent: true,
     backgroundColor: "#00000000",
@@ -922,10 +924,19 @@ app.whenReady().then(() => {
     pythonReady: await pathExists(pythonPath),
     bridgeReady: await pathExists(bridgePath),
     configPresent: await pathExists(path.join(pocRoot, "config.py")),
+    activeMeetingId: bridgeProcess ? activeMeetingRecordId : null,
+  }));
+
+  ipcMain.handle("meeting:get-active", async () => ({
+    active: Boolean(bridgeProcess),
+    meetingId: bridgeProcess ? activeMeetingRecordId : null,
   }));
 
   ipcMain.handle("floating:open", async () => {
     createFloatingWindow();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.minimize();
+    }
     return { ok: true };
   });
 
@@ -1215,6 +1226,20 @@ app.whenReady().then(() => {
     if (["general", "sales", "requirements"].includes(options.scene)) {
       args.push("--scene", String(options.scene));
     }
+    if (
+      ["direct", "business", "challenger", "collaborative", "custom"].includes(
+        options.responseTone,
+      )
+    ) {
+      args.push("--response-tone", String(options.responseTone));
+    }
+    if (
+      options.customTonePrompt &&
+      typeof options.customTonePrompt === "string" &&
+      options.customTonePrompt.trim()
+    ) {
+      args.push("--custom-tone-prompt", options.customTonePrompt.trim());
+    }
     // 供应商/模型均可由 UI 切换（此前只能改 config.py）
     if (options.provider) args.push("--provider", String(options.provider));
     if (options.llmModel) args.push("--llm-model", String(options.llmModel));
@@ -1398,6 +1423,16 @@ app.whenReady().then(() => {
           message,
           fatal: true,
         });
+      }
+      if (closingMeetingRecordId && !bridgeReportedFatalError) {
+        try {
+          markMeetingCompleted(meetingDatabasePath(), closingMeetingRecordId, Date.now());
+        } catch (error) {
+          sendMeetingEvent({
+            type: "diagnostic",
+            message: `会议状态自动归档失败：${error.message || error}`,
+          });
+        }
       }
       sendMeetingEvent({ type: "bridge_closed", code });
       bridgeProcess = undefined;

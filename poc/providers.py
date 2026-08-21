@@ -209,6 +209,8 @@ def build_llm(
     provider=None,
     model=None,
     scene="general",
+    tone=None,
+    custom_tone_prompt=None,
     timeout_seconds=None,
     retry_attempts=None,
 ):
@@ -216,6 +218,12 @@ def build_llm(
     configured = _cfg("LLM_PROVIDER", default="xfyun")
     explicit = provider is not None and provider != configured
     provider = provider or configured
+    tone = tone or _cfg("RESPONSE_TONE", default="direct")
+    custom_tone_prompt = (
+        custom_tone_prompt
+        if custom_tone_prompt is not None
+        else _cfg("CUSTOM_TONE_PROMPT", default="")
+    )
 
     base_url = None
     # 模型名优先级：显式传入(UI 探测选中) > 显式切换供应商时用默认(None) >
@@ -295,6 +303,8 @@ def build_llm(
     return SuggestionEngine(kb, me_name=me_name, provider=provider,
                             api_key=key, model=model, base_url=base_url,
                             scene=scene,
+                            tone=tone,
+                            custom_tone_prompt=custom_tone_prompt,
                             timeout_seconds=(
                                 timeout_seconds
                                 if timeout_seconds is not None

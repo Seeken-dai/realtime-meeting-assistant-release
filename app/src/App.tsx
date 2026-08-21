@@ -93,6 +93,7 @@ import type {
   SuggestionBatch,
   SuggestionContextRange,
   MeetingScene,
+  ResponseTone,
   SceneRecommendation,
   RuntimeConfigSnapshot,
   MeetingMemoryItem,
@@ -100,6 +101,7 @@ import type {
   TranscriptItem,
   DesktopBridge,
 } from "./types";
+import { RESPONSE_TONE_META } from "./types";
 import {
   buildSpeakerDistribution,
   findNearestSuggestionBatchForTranscript,
@@ -181,6 +183,8 @@ function generateDefaultMeetingTitle() {
 const initialState: PersistedState = {
   meetingTitle: "",
   scene: "general",
+  responseTone: "direct",
+  customTonePrompt: "",
   theme: "light",
   meetingMode: "in_person",
   silenceSeconds: 2,
@@ -190,6 +194,9 @@ const initialState: PersistedState = {
 
 function mergePersistedState(saved: Partial<PersistedState>): PersistedState {
   const next = { ...initialState, ...saved };
+  if (!next.responseTone) {
+    next.responseTone = "direct";
+  }
   if (
     !next.meetingTitle ||
     ["xx项目需求澄清会", "xx 项目需求澄清会"].includes(
@@ -1132,6 +1139,33 @@ function FloatingStrategyWindow() {
 
   const hoverRef = useRef(false);
   hoverRef.current = isHovered;
+  const appearancePanelRef = useRef<HTMLDivElement>(null);
+  const appearanceButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!appearanceOpen) return;
+    function handleClickOutside(event: PointerEvent) {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (
+        appearancePanelRef.current &&
+        appearancePanelRef.current.contains(target)
+      ) {
+        return;
+      }
+      if (
+        appearanceButtonRef.current &&
+        appearanceButtonRef.current.contains(target)
+      ) {
+        return;
+      }
+      setAppearanceOpen(false);
+    }
+    window.addEventListener("pointerdown", handleClickOutside);
+    return () => {
+      window.removeEventListener("pointerdown", handleClickOutside);
+    };
+  }, [appearanceOpen]);
 
   useEffect(() => {
     document.documentElement.dataset.window = "floating";
@@ -1231,7 +1265,10 @@ function FloatingStrategyWindow() {
     if (!window.meetingCopilot?.setMeetingControls) return;
     const next = !recordingPaused;
     setRecordingPaused(next);
-    await window.meetingCopilot.setMeetingControls({ recordingPaused: next });
+    await window.meetingCopilot.setMeetingControls({
+      recordingPaused: next,
+      suggestionsPaused: next,
+    });
   }, [recordingPaused]);
 
   const handleStopMeeting = useCallback(async () => {
@@ -1282,22 +1319,6 @@ function FloatingStrategyWindow() {
         <div className="floating-header-left">
           <span className="channel-dot brass" />
           <strong className="floating-header-title">应答策略</strong>
-          {generating && (
-            <span className="floating-generating-badge" title="正在生成建议…">
-              <Loader2 size={12} className="spin" />
-              {!preferences.collapsed && <span>生成中</span>}
-            </span>
-          )}
-          {recordingPaused && (
-            <span className="floating-paused-badge" title="会议录制已暂停">
-              <Pause size={10} /> 已暂停
-            </span>
-          )}
-          {!preferences.collapsed && isHovered && (
-            <span className="floating-hover-freeze-tag" title="鼠标停留中：已暂锁当前话术，移开后自动解冻">
-              <Lock size={10} /> 悬停锁存
-            </span>
-          )}
           {!preferences.collapsed && batches.length > 1 && (
             <div className="floating-batch-nav">
               <button
@@ -1330,6 +1351,25 @@ function FloatingStrategyWindow() {
                 <ChevronRight size={12} />
               </button>
             </div>
+          )}
+          {generating && (
+            <span className="floating-generating-badge" title="正在生成建议…">
+              <Loader2 size={12} className="spin" />
+              {!preferences.collapsed && <span>生成中</span>}
+            </span>
+          )}
+          {recordingPaused && (
+            <span className="floating-paused-badge" title="会议录制已暂停">
+              <Pause size={10} /> 已暂停
+            </span>
+          )}
+          {!preferences.collapsed && isHovered && (
+            <span
+              className="floating-hover-freeze-tag"
+              title="鼠标停留中：已暂锁当前话术，移开后自动解冻"
+            >
+              <Lock size={10} /> 悬停锁存
+            </span>
           )}
           {preferences.collapsed && activeSuggestions.length > 0 && (
             <span className="floating-collapsed-summary">
@@ -1394,6 +1434,7 @@ function FloatingStrategyWindow() {
             {preferences.alwaysOnTop ? <Pin size={13} /> : <PinOff size={13} />}
           </button>
           <button
+            ref={appearanceButtonRef}
             className={`icon-button ${appearanceOpen ? "active" : ""}`}
             aria-label="悬浮窗外观"
             title="背景与透明度"
@@ -1412,7 +1453,7 @@ function FloatingStrategyWindow() {
       </header>
 
       {appearanceOpen && !preferences.collapsed && (
-        <div className="floating-appearance-panel">
+        <div ref={appearancePanelRef} className="floating-appearance-panel">
           <div className="floating-appearance-row">
             <span>背景</span>
             <div className="floating-tints">
@@ -2121,6 +2162,27 @@ function MainApp() {
       if (saved) setPersisted(mergePersistedState(saved));
       setRuntime(status);
       setRecords(meetingRecords);
+      // 若后台有正在进行的活跃会议且前端未连接，自动恢复会中状态
+      if (status?.activeMeetingId) {
+        const runningId = String(status.activeMeetingId);
+        const currentRecord =
+          meetingRecords.find((r) => r.id === runningId) ||
+          (await window.meetingCopilot!.loadMeetingRecord(runningId));
+        if (currentRecord && active) {
+          setActiveMeetingId(runningId);
+          setMeetingStartedAt(currentRecord.startedAt);
+          setMeetingStatus("live");
+          setTranscript(currentRecord.transcript || []);
+          setBatches(currentRecord.batches || []);
+          setMemoryItems(currentRecord.memoryItems || []);
+          setRecordedAudio({
+            path: currentRecord.audioPath || "",
+            seconds: currentRecord.audioSeconds || 0,
+          });
+          setScreen("meeting");
+          setStatusMessage("已自动恢复正在进行的会议");
+        }
+      }
     }
     void bootstrap();
     return () => {
@@ -3035,6 +3097,8 @@ function MainApp() {
         device: persisted.selectedDevice,
         meetingMode: persisted.meetingMode || "in_person",
         scene: persisted.scene || "general",
+        responseTone: persisted.responseTone || "direct",
+        customTonePrompt: persisted.customTonePrompt || "",
         projectId: activeProjectId,
         documents: scopeDocuments,
         // UI 选中的供应商/模型（空则 Python 侧用 config.py 默认）
@@ -3056,6 +3120,8 @@ function MainApp() {
         status: "active",
         meetingMode: persisted.meetingMode || "in_person",
         scene: persisted.scene || "general",
+        responseTone: persisted.responseTone || "direct",
+        customTonePrompt: persisted.customTonePrompt || "",
         projectId: activeProjectId,
         runtimeConfig: {
           provider: persisted.llmProvider || "config.py 默认",
@@ -3066,6 +3132,8 @@ function MainApp() {
           timeoutSeconds: 12,
           suggestionCount: persisted.suggestionCount,
           silenceSeconds: persisted.silenceSeconds,
+          responseTone: persisted.responseTone || "direct",
+          customTonePrompt: persisted.customTonePrompt || "",
           glossaryStatus: "pending",
           glossaryCount: 0,
         },
@@ -3454,9 +3522,7 @@ function MainApp() {
 
   async function toggleRecording() {
     const nextRecordingPaused = !recordingPaused;
-    const nextSuggestionsPaused = nextRecordingPaused
-      ? true
-      : suggestionsPaused;
+    const nextSuggestionsPaused = nextRecordingPaused ? true : false;
     setRecordingPaused(nextRecordingPaused);
     setSuggestionsPaused(nextSuggestionsPaused);
     if (nextRecordingPaused) audioLevelStore.set(0);
@@ -4308,6 +4374,51 @@ function PrepareScreen({
               ),
             )}
           </div>
+        </div>
+      </div>
+      <div className="form-section scene-section">
+        <div className="form-section-label">
+          <MessageSquareText size={18} />
+          <div>
+            <strong>应答风格</strong>
+            <span>影响会中生成建议的语气、客套程度与分析视角</span>
+          </div>
+        </div>
+        <div className="scene-picker-wrap">
+          <div className="scene-picker" role="radiogroup" aria-label="应答风格">
+            {(
+              Object.entries(RESPONSE_TONE_META) as Array<
+                [ResponseTone, (typeof RESPONSE_TONE_META)[ResponseTone]]
+              >
+            ).map(([tone, meta]) => (
+              <button
+                key={tone}
+                type="button"
+                className={
+                  (persisted.responseTone || "direct") === tone ? "active" : ""
+                }
+                onClick={() => onChange({ ...persisted, responseTone: tone })}
+                role="radio"
+                aria-checked={(persisted.responseTone || "direct") === tone}
+              >
+                <strong>{meta.short}</strong>
+                <small>{meta.description}</small>
+              </button>
+            ))}
+          </div>
+          {persisted.responseTone === "custom" && (
+            <div style={{ marginTop: 8 }}>
+              <input
+                className="field-input"
+                style={{ width: "100%", boxSizing: "border-box" }}
+                placeholder="填写自定义应答风格要求（如：我是技术总监，说话直接点，优先挑高可用漏洞）"
+                value={persisted.customTonePrompt || ""}
+                onChange={(e) =>
+                  onChange({ ...persisted, customTonePrompt: e.target.value })
+                }
+              />
+            </div>
+          )}
         </div>
       </div>
       <div className="form-section">
@@ -5668,11 +5779,33 @@ function BoostedMeetingAudio({
   );
 }
 
+function normalizeEvidenceMarkers(text: string): string {
+  // 1. 统一全角方括号
+  let s = text
+    .replace(/［/g, "[")
+    .replace(/］/g, "]")
+    .replace(/【/g, "[")
+    .replace(/】/g, "]");
+
+  // 2. 匹配外层包裹了多个证据或带逗号的证据组，例如 [[证据 ...], [证据 ...]]
+  s = s.replace(/\[\s*(?:\[证据\s+[^\]]+\]\s*[,，、]?\s*)+\]/g, (block) => {
+    const items = block.match(/\[证据\s+[^\]]+\]/g);
+    return items ? " " + items.join(" ") : block;
+  });
+
+  // 3. 匹配单个被多层方括号包裹的证据，例如 [[证据 ...]]
+  s = s.replace(/\[\s*(\[证据\s+[^\]]+\])\s*\]/g, " $1");
+
+  return s;
+}
+
 function renderMarkdownInline(
   text: string,
   onEvidenceClick?: (transcriptId: string) => void,
 ) {
-  const evidencePattern = /\[证据\s+id=([^\]\s]+)\s+t=([^\]]+)\]|\[证据 待确认\]/g;
+  const normalized = normalizeEvidenceMarkers(text);
+  const evidencePattern =
+    /(?:\[|［|【)证据\s+(?:id=([^\s\]］】]+)\s+t=([^\]］】]+)|(待确认))(?:\]|］|】)/g;
   const nodes: React.ReactNode[] = [];
   let cursor = 0;
   let match: RegExpExecArray | null;
@@ -5693,14 +5826,19 @@ function renderMarkdownInline(
         return <span key={key}>{part}</span>;
       });
 
-  while ((match = evidencePattern.exec(text))) {
+  while ((match = evidencePattern.exec(normalized))) {
     if (match.index > cursor) {
-      nodes.push(...renderText(text.slice(cursor, match.index), `inline-${nodeIndex++}`));
+      nodes.push(
+        ...renderText(
+          normalized.slice(cursor, match.index),
+          `inline-${nodeIndex++}`,
+        ),
+      );
     }
     const raw = match[0];
     const transcriptId = match[1] || "";
     const timestamp = match[2] || "";
-    const pending = raw === "[证据 待确认]";
+    const pending = Boolean(match[3]) || raw.includes("待确认");
     const label = pending ? "证据待确认" : `原文 ${timestamp}`;
     const title = pending
       ? "这条内容暂时没有可定位的原文"
@@ -5731,17 +5869,41 @@ function renderMarkdownInline(
     }
     cursor = match.index + raw.length;
   }
-  if (cursor < text.length) {
-    nodes.push(...renderText(text.slice(cursor), `inline-${nodeIndex}`));
+  if (cursor < normalized.length) {
+    nodes.push(...renderText(normalized.slice(cursor), `inline-${nodeIndex}`));
   }
-  return nodes.length ? nodes : renderText(text, "inline-empty");
+  return nodes.length ? nodes : renderText(normalized, "inline-empty");
 }
 
-function stripMinutesEvidenceMarkers(source: string) {
-  return source
-    .replace(/\[证据\s+id=[^\]\s]+(?:\s+t=[^\]]+)?\]|\[证据 待确认\]/g, " ")
-    .replace(/[ \t]+([，。；、：！？,.!?])/g, "$1")
-    .replace(/^[ \t]+|[ \t]+$/gm, "");
+function stripMinutesEvidenceMarkers(source: string): string {
+  const lines = source.replace(/\r\n?/g, "\n").split("\n");
+  const processedLines = lines.map((line) => {
+    // 保护行首任务列表标记，如 "- [ ] ", "- [x] ", "* [ ] "
+    let prefix = "";
+    let body = line;
+    const taskMatch = line.match(/^(\s*[-*+]\s+\[[ xX]\]\s+)/);
+    if (taskMatch) {
+      prefix = taskMatch[1];
+      body = line.slice(prefix.length);
+    }
+
+    let cleaned = normalizeEvidenceMarkers(body);
+    cleaned = cleaned.replace(
+      /(?:\[|［|【)证据\s+(?:id=[^\s\]］】]+(?:\s+t=[^\]］】]+)?|待确认)(?:\]|］|】)/g,
+      " ",
+    );
+    while (/(?:\[|［|【)[\s,，、]*(?:\]|］|】)/.test(cleaned)) {
+      cleaned = cleaned.replace(/(?:\[|［|【)[\s,，、]*(?:\]|］|】)/g, " ");
+    }
+    cleaned = cleaned
+      .replace(/[ \t]+([，。；、：！？,.!?])/g, (_match, p1) => p1)
+      .replace(/[ \t]+/g, " ")
+      .trimEnd();
+
+    return prefix + cleaned;
+  });
+
+  return processedLines.join("\n").replace(/^\n+|\n+$/g, "");
 }
 
 /**
@@ -6930,6 +7092,9 @@ function HistoryDetailScreen({
             <div className="eyebrow">
               会议档案 · 本机保存
               {` · ${SCENE_META[record.scene || "general"].label}`}
+              {record.responseTone
+                ? ` · ${RESPONSE_TONE_META[record.responseTone]?.short || record.responseTone}`
+                : ""}
               {record.projectName ? ` · ${record.projectName}` : ""}
             </div>
             <div className="history-title-row">
@@ -10658,6 +10823,63 @@ function SettingsScreen({
             </p>
           </section>
         </div>
+
+        {/* ── 应答风格（话术人设） ── */}
+        <section className="settings-card" id="settings-response-tone">
+          <header className="settings-card-head">
+            <div>
+              <span className="settings-card-kicker">建议话术</span>
+              <h2>应答风格（话术人设）</h2>
+            </div>
+            <span className="local-tag">
+              {RESPONSE_TONE_META[persisted.responseTone || "direct"]?.short || "直率务实"}
+            </span>
+          </header>
+          <div className="scene-picker" role="radiogroup" aria-label="应答风格配置" style={{ marginBottom: 12 }}>
+            {(
+              Object.entries(RESPONSE_TONE_META) as Array<
+                [ResponseTone, (typeof RESPONSE_TONE_META)[ResponseTone]]
+              >
+            ).map(([tone, meta]) => (
+              <button
+                key={tone}
+                type="button"
+                className={
+                  (persisted.responseTone || "direct") === tone ? "active" : ""
+                }
+                onClick={() => onChange({ ...persisted, responseTone: tone })}
+                role="radio"
+                aria-checked={(persisted.responseTone || "direct") === tone}
+              >
+                <strong>{meta.short}</strong>
+                <small>{meta.description}</small>
+              </button>
+            ))}
+          </div>
+          {persisted.responseTone === "custom" && (
+            <div className="settings-row" style={{ marginTop: 8 }}>
+              <label className="field grow">
+                <span>自定义风格补充要求</span>
+                <input
+                  value={persisted.customTonePrompt || ""}
+                  placeholder="例如：我是技术总监，说话直接点，优先挑高可用和扩展性漏洞"
+                  onChange={(event) =>
+                    onChange({
+                      ...persisted,
+                      customTonePrompt: event.target.value,
+                    })
+                  }
+                />
+              </label>
+            </div>
+          )}
+          <p className="hint-text trigger-hint">
+            <strong>直率务实</strong>适合产研内部评审、技术过会与日常站会，输出极简干货且杜绝客套；
+            <strong>商务稳健</strong>适合对外客户沟通与谈判；<strong>敏锐质询</strong>注重找茬把关；<strong>温和协调</strong>注重化解分歧。
+            <br />
+            无论选择何种风格，事实型内容始终严格依据知识库，严禁编造。
+          </p>
+        </section>
 
         {/* ── 数据 ── */}
         <section className="settings-card" id="settings-data">

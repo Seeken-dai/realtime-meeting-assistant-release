@@ -13,6 +13,9 @@
 官方：https://help.aliyun.com/zh/model-studio/real-time-speech-recognition-user-guide
 """
 
+import threading
+import time
+
 import dashscope
 from dashscope.audio.asr import Recognition, RecognitionCallback, RecognitionResult
 
@@ -20,19 +23,33 @@ from base import ASRBase
 
 
 class _Callback(RecognitionCallback):
-    def __init__(self, on_result, debug=False):
+    def __init__(self, on_result, owner, debug=False):
         self._on_result = on_result
+        self._owner = owner
         self._debug = debug
 
     def on_open(self):
+        self._owner._connected = True
+        self._owner._needs_reconnect = False
         print("[阿里云] 连接已建立")
 
     def on_close(self):
-        print("[阿里云] 连接已关闭")
+        self._owner._connected = False
+        if self._owner._running:
+            self._owner._needs_reconnect = True
+            print("[阿里云] 连接已断开（将自动平滑重连）")
+        else:
+            print("[阿里云] 连接已关闭")
 
     def on_error(self, result):
-        msg = getattr(result, "message", None) or getattr(result, "status_message", None) or repr(result)
+        msg = (
+            getattr(result, "message", None)
+            or getattr(result, "status_message", None)
+            or repr(result)
+        )
         print(f"[阿里云] 错误: {msg}")
+        if self._owner._running:
+            self._owner._needs_reconnect = True
 
     def on_event(self, result: RecognitionResult):
         sentence = result.get_sentence()
@@ -40,7 +57,10 @@ class _Callback(RecognitionCallback):
             return
         if self._debug:
             import json as _json
-            print(f"\n\033[90m[原始返回] {_json.dumps(sentence, ensure_ascii=False)}\033[0m")
+
+            print(
+                f"\n\033[90m[原始返回] {_json.dumps(sentence, ensure_ascii=False)}\033[0m"
+            )
         text = sentence.get("text", "")
         if not text:
             return
@@ -56,17 +76,32 @@ class _Callback(RecognitionCallback):
         # 实时模型只在静音处断句，一条 final 能覆盖几十秒、跨好几次换人。
         # words 不是所有模型都给，缺了就退回按语音时长比例分配。
         begin_ms = sentence.get("begin_time")
-        self._on_result(text=text, speaker=speaker, is_final=is_final,
-                        end_ms=end_ms,
-                        begin_ms=None if begin_ms is None else int(begin_ms),
-                        words=sentence.get("words") or None)
+        self._on_result(
+            text=text,
+            speaker=speaker,
+            is_final=is_final,
+            end_ms=end_ms,
+            begin_ms=None if begin_ms is None else int(begin_ms),
+            words=sentence.get("words") or None,
+        )
 
 
 class AliyunASR(ASRBase):
     name = "阿里云实时语音识别"
 
-    def __init__(self, api_key, sample_rate=16000, model="qwen-audio-3.0-asr-flash-streaming",
-                 language_hints=None, vocabulary_id=None, debug=False, **_ignored):
+    # 单个 WebSocket 连接安全轮换上限（阿里云服务端约 20 分钟断开，提前在 18 分钟安全续接）
+    MAX_SESSION_SECONDS = 18 * 60
+
+    def __init__(
+        self,
+        api_key,
+        sample_rate=16000,
+        model="qwen-audio-3.0-asr-flash-streaming",
+        language_hints=None,
+        vocabulary_id=None,
+        debug=False,
+        **_ignored,
+    ):
         # **_ignored：兼容旧调用方传入的 diarization / speaker_count，静默丢弃
         # language_hints：仅 paraformer-realtime-v2 等模型生效；不设则自动识语种，
         # 实测易串出日文等。默认中英，评审会场景用 zh / en / zh_en 显式限定。
@@ -79,14 +114,19 @@ class AliyunASR(ASRBase):
         self.vocabulary_id = vocabulary_id or None
         self.debug = debug
         self._recognition = None
+        self._on_result = None
+        self._running = False
+        self._connected = False
+        self._needs_reconnect = False
+        self._session_start_time = 0.0
+        self._lock = threading.Lock()
 
-    def start(self, on_result):
-        # Recognition 把 **kwargs 原样塞进请求；language_hints 是官方参数名
+    def _build_recognition(self):
         kw = dict(
             model=self.model,
             format="pcm",
             sample_rate=self.sample_rate,
-            callback=_Callback(on_result, debug=self.debug),
+            callback=_Callback(self._on_result, owner=self, debug=self.debug),
         )
         # language_hints 仅在 paraformer 系列生效，避免向 qwen-audio / fun-asr 传入不支持参数
         if self.language_hints and self.model.startswith("paraformer"):
@@ -95,26 +135,68 @@ class AliyunASR(ASRBase):
         if self.vocabulary_id:
             kw["vocabulary_id"] = self.vocabulary_id
             kw["phrase_id"] = self.vocabulary_id
-        self._recognition = Recognition(**kw)
-        self._recognition.start()
+        return Recognition(**kw)
+
+    def start(self, on_result):
+        with self._lock:
+            self._on_result = on_result
+            self._running = True
+            self._needs_reconnect = False
+            self._recognition = self._build_recognition()
+            self._session_start_time = time.time()
+            self._recognition.start()
+
+    def _reconnect(self):
+        old_rec = self._recognition
+        self._recognition = None
+        if old_rec:
+            try:
+                old_rec.stop()
+            except Exception:
+                pass
+        if not self._running or not self._on_result:
+            return
+        print("[阿里云] 正在重建 ASR 流式会话...")
+        try:
+            self._recognition = self._build_recognition()
+            self._session_start_time = time.time()
+            self._needs_reconnect = False
+            self._recognition.start()
+        except Exception as exc:
+            print(f"[阿里云] 重建连接失败: {exc}")
+            self._needs_reconnect = True
 
     def send(self, pcm_bytes):
-        self._recognition.send_audio_frame(pcm_bytes)
+        with self._lock:
+            if not self._running:
+                return
+            now = time.time()
+            if self._needs_reconnect or (
+                self._connected
+                and (now - self._session_start_time > self.MAX_SESSION_SECONDS)
+            ):
+                self._reconnect()
+
+            if self._recognition is None:
+                return
+
+            try:
+                self._recognition.send_audio_frame(pcm_bytes)
+            except Exception as exc:
+                print(f"[阿里云] 发送音频帧异常: {exc}")
+                self._needs_reconnect = True
 
     def stop(self):
-        """结束会话。**已经停了再停不算错。**
-
-        ⚠️ dashscope 在识别已结束时 `stop()` 会抛
-           `InvalidParameter: Speech recognition has stopped.` ——
-           服务端先关连接（音频流结束、超时、网络断）时就会走到这里。
-           调用方通常在 finally 里收尾，这个异常会把后面的收尾全部掀掉
-           （实测：整场会议的 `ended` 事件因此没发出去，录音时长与声纹统计全丢）。
-        """
-        if self._recognition is None:
-            return
-        try:
-            self._recognition.stop()
-        except Exception as exc:
-            print(f"[阿里云] 停止时忽略：{exc}")
-        finally:
-            self._recognition = None
+        """结束会话。**已经停了再停不算错。**"""
+        with self._lock:
+            self._running = False
+            self._connected = False
+            self._needs_reconnect = False
+            if self._recognition is None:
+                return
+            try:
+                self._recognition.stop()
+            except Exception as exc:
+                print(f"[阿里云] 停止时忽略：{exc}")
+            finally:
+                self._recognition = None

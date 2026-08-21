@@ -1065,6 +1065,8 @@ def run(args):
                 provider=args.provider,
                 model=args.llm_model,
                 scene=getattr(args, "scene", "general"),
+                tone=getattr(args, "response_tone", None),
+                custom_tone_prompt=getattr(args, "custom_tone_prompt", None),
                 timeout_seconds=12.0,
                 retry_attempts=2,
             )
@@ -1338,6 +1340,8 @@ def run(args):
         minIntervalSec=MIN_INTERVAL_SEC,
         minNewChars=MIN_NEW_CHARS,
         scene=session.scene,
+        tone=getattr(engine, "tone", "direct"),
+        toneLabel=getattr(engine, "tone_label", "直率务实（产研内推）"),
         provider=getattr(engine, "provider", ""),
         model=getattr(engine, "model", ""),
         timeoutSeconds=12,
@@ -1717,6 +1721,19 @@ def main():
         choices=("general", "sales", "requirements"),
         default="general",
         help="会议场景：general / sales / requirements",
+    )
+    parser.add_argument(
+        "--response-tone",
+        dest="response_tone",
+        choices=("direct", "business", "challenger", "collaborative", "custom"),
+        default="direct",
+        help="话术应答风格：direct / business / challenger / collaborative / custom",
+    )
+    parser.add_argument(
+        "--custom-tone-prompt",
+        dest="custom_tone_prompt",
+        default="",
+        help="自定义话术风格补充指令",
     )
     parser.add_argument("--provider")          # LLM 供应商（UI 切换）
     parser.add_argument("--llm-model", dest="llm_model")  # LLM 模型名（UI 探测选中）

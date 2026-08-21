@@ -69,10 +69,70 @@ REQUIRED_HEADINGS = (
 
 class MinutesGenerationError(RuntimeError):
     """让 Electron 收到可展示、可落库的纪要失败诊断。"""
+MINUTES_LLM_RETRY_ATTEMPTS = 2
+EVIDENCE_CATALOG_MAX_CHARS = 48_000
+
+
+PART_SYSTEM = """你是严谨的会议记录员。请把这一部分会议转写压缩成事实笔记。
+只记录明确出现的内容，不推断负责人、期限、数字或结论；不确定就写“未明确”。
+保留：讨论主题、已确认结论、待办、需求/约束、风险和待确认问题。使用简洁中文。
+每条事实后必须保留输入中对应的完整证据标记，原样复制
+`[证据 id=转写ID t=MM:SS]`，不得改写 id 或时间；合并多条事实时可以附多个证据标记。
+没有明确支持材料时才写 `[证据 待确认]`，不要为了省字删掉证据标记。"""
+
+FINAL_SYSTEM = """你是严谨的产品需求会议记录员。请根据提供的会议事实笔记生成 Markdown 纪要。
+必须使用以下结构：
+# 会议纪要
+## 一句话摘要
+## 已确认结论
+## 待办事项
+## 需求与约束
+## 风险与待确认
+
+规则：
+1. 只能写材料中明确出现的事实，不补造负责人、期限、数字、客户立场或最终决定。
+2. 待办事项尽量写成“- [ ] 事项｜负责人：…｜期限：…”，未明确就如实标注。
+3. 合并重复内容，保留分歧与未决问题。
+4. 每条已确认结论、待办、风险或待确认事项末尾附上材料中的证据标记，格式为
+   `[证据 id=转写ID t=MM:SS]`。证据标记必须从输入材料中逐字复制，尤其是 id 和 t
+   不得改写、翻译或替换成“待确认”；只有找不到明确证据时才使用 `[证据 待确认]`。
+5. 长会议的分块事实笔记可能遗漏证据标记；如果输入末尾提供了“完整证据目录”，
+   必须优先从目录中选择与事实对应的原始标记，不要凭空编造 id 或时间。
+6. 不要输出代码块，不要解释生成过程。"""
+
+REQUIRED_HEADINGS = (
+    "## 一句话摘要",
+    "## 已确认结论",
+    "## 待办事项",
+    "## 需求与约束",
+    "## 风险与待确认",
+)
+
+
+class MinutesGenerationError(RuntimeError):
+    """让 Electron 收到可展示、可落库的纪要失败诊断。"""
 
     def __init__(self, message, diagnostic):
         self.diagnostic = diagnostic
         super().__init__(message)
+
+
+def normalize_evidence_tags(text: str) -> str:
+    """把模型产出的各种多层嵌套、逗号数组格式的证据标记规范化为标准单层空格分隔格式。"""
+    s = str(text or "").replace("［", "[").replace("］", "]").replace("【", "[").replace("】", "]")
+
+    def _clean_evidence_block(m):
+        block = m.group(0)
+        items = re.findall(r"\[证据\s+[^\]]+\]", block)
+        if items:
+            return " " + " ".join(items)
+        return block
+
+    # 匹配外层包裹了多个证据或带逗号的证据组，例如 [[证据 ...], [证据 ...]]
+    s = re.sub(r"\[\s*(?:\[证据\s+[^\]]+\]\s*[,，、]?\s*)+\]", _clean_evidence_block, s)
+    # 单独的 [[证据 ...]] 双层括号
+    s = re.sub(r"\[\s*(\[证据\s+[^\]]+\])\s*\]", r"\1", s)
+    return s
 
 
 def ensure_minutes_sections(content):
@@ -90,17 +150,6 @@ def ensure_minutes_sections(content):
         text = re.sub(r"^会议纪要\s*\n", "# 会议纪要\n", text, count=1)
     elif not text.startswith("# 会议纪要"):
         text = "# 会议纪要\n\n" + text
-    missing = [heading for heading in REQUIRED_HEADINGS if heading not in text]
-    if missing:
-        text = text.rstrip() + "\n\n" + "\n\n".join(
-            f"{heading}\n- 未明确，待确认。" for heading in missing
-        )
-    return text
-
-
-def chunk_lines(lines, limit=12000):
-    chunks = []
-    current = []
     size = 0
     for line in lines:
         if current and size + len(line) + 1 > limit:

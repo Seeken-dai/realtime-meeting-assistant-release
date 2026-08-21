@@ -1,7 +1,7 @@
 # 实时会议话术助手 (Meeting Copilot) 🎙️🤖
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.1.5-blue.svg" alt="Release v0.1.5">
+  <img src="https://img.shields.io/badge/Release-v0.1.6-blue.svg" alt="Release v0.1.6">
   <img src="https://img.shields.io/badge/Platform-Windows%2010%2F11%20x64-green.svg" alt="Platform">
   <img src="https://img.shields.io/badge/Electron-43.2.0-indigo.svg" alt="Electron">
   <img src="https://img.shields.io/badge/Python-3.10%2B-yellow.svg" alt="Python">
@@ -81,7 +81,7 @@
 ### 方式一：下载开箱即用的安装包 (Windows)
 
 访问 [Releases 页面](../../releases) 下载最新版本的安装程序：
-* `realtime-meeting-assistant-V0.1.5-x64.exe`
+* `realtime-meeting-assistant-V0.1.6-x64.exe`
 
 下载后直接双击安装，并在应用的【设置】页面填入你的大模型与 ASR API Key 即可使用。
 
@@ -123,7 +123,7 @@ npm run dev
 cd ..
 .\package.ps1
 ```
-打包产物将自动输出至 `release/V0.1.5/` 目录。
+打包产物将自动输出至 `release/V0.1.6/` 目录。
 
 ---
 
@@ -133,7 +133,7 @@ cd ..
 * 📐 [系统架构设计](docs/ARCHITECTURE.md)：双轨音频采集、桥接协议、说话人区分算法与状态机。
 * ❓ [常见问题解答 (FAQ)](docs/FAQ.md)：收音调优、云厂商计费比较、快捷键冲突。
 * 🔒 [隐私与数据安全说明](docs/PRIVACY.md)：本地安全存储机制与传输策略。
-* 📜 [版本更新日志](CHANGELOG.md)：从 v0.1.0 到 v0.1.5 的完整演进历程。
+* 📜 [版本更新日志](CHANGELOG.md)：从 v0.1.0 到 v0.1.6 的完整演进历程。
 
 ---
 

@@ -21,6 +21,47 @@ export interface BackgroundTaskInfo {
 
 export type MeetingScene = "general" | "sales" | "requirements";
 
+export type ResponseTone =
+  | "direct"
+  | "business"
+  | "challenger"
+  | "collaborative"
+  | "custom";
+
+export interface ResponseToneMeta {
+  label: string;
+  short: string;
+  description: string;
+}
+
+export const RESPONSE_TONE_META: Record<ResponseTone, ResponseToneMeta> = {
+  direct: {
+    label: "直率务实（产研内推）",
+    short: "直率务实",
+    description: "极简干货、直指技术与业务逻辑、直说方案漏洞与执行动作，不带客套寒暄。",
+  },
+  business: {
+    label: "商务稳健（对外客户）",
+    short: "商务稳健",
+    description: "得体客气、留有余地、严控承诺边界、积极引导对方需求。",
+  },
+  challenger: {
+    label: "敏锐质询（把关挑刺）",
+    short: "敏锐质询",
+    description: "以质疑、挑刺、找逻辑漏洞与异常边界为主，充当会议的风险守门人。",
+  },
+  collaborative: {
+    label: "温和协调（推进共识）",
+    short: "温和协调",
+    description: "善于总结分歧、化解冲突、提出折中方案并明确下一步行动。",
+  },
+  custom: {
+    label: "自定义风格",
+    short: "自定义",
+    description: "使用用户在后台填写的个性化角色与风格提示词。",
+  },
+};
+
 export interface SceneRecommendation {
   scene: MeetingScene;
   label: string;
@@ -39,6 +80,8 @@ export interface RuntimeConfigSnapshot {
   silenceSeconds: number;
   glossaryStatus: string;
   glossaryCount: number;
+  responseTone?: ResponseTone;
+  customTonePrompt?: string;
 }
 
 export type MeetingMemoryKind = "decision" | "action_item";
@@ -276,6 +319,8 @@ export interface MeetingRecord {
   status: "active" | "completed" | "interrupted";
   /** 旧会议没有场景时按通用场景展示。 */
   scene?: MeetingScene;
+  responseTone?: ResponseTone;
+  customTonePrompt?: string;
   runtimeConfig?: RuntimeConfigSnapshot | null;
   /** 线上记录才使用独立麦克风/系统回环音轨；旧记录默认为线下兼容模式。 */
   meetingMode?: "in_person" | "online";
@@ -357,6 +402,10 @@ export interface PersistedState {
   voiceprintEnabled?: boolean;
   /** 声纹阈值，默认 0.65 */
   meThreshold?: number;
+  /** 话术应答风格 */
+  responseTone?: ResponseTone;
+  /** 自定义话术风格补充指令 */
+  customTonePrompt?: string;
 }
 
 /** 设置页凭证字段状态（主进程只回传打码预览） */
@@ -487,7 +536,9 @@ export interface DesktopBridge {
     pythonReady: boolean;
     bridgeReady: boolean;
     configPresent: boolean;
+    activeMeetingId?: string | null;
   }>;
+  getActiveMeeting?(): Promise<{ active: boolean; meetingId: string | null }>;
   listInputDevices(): Promise<{ type: "devices"; devices: InputDevice[] }>;
   testInputDevice(device: number): Promise<{ ok: boolean }>;
   startMeeting(options: {
@@ -497,6 +548,8 @@ export interface DesktopBridge {
     device?: number;
     meetingMode?: "in_person" | "online";
     scene?: MeetingScene;
+    responseTone?: ResponseTone;
+    customTonePrompt?: string;
     /** 本场归属项目：用于合并项目专有名词 */
     projectId?: string | null;
     provider?: string;      // LLM 供应商

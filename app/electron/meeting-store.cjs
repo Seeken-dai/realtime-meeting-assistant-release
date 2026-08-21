@@ -1879,6 +1879,20 @@ function finalizeOrphanedMeetings(databasePath) {
   return { finalized: orphans.length };
 }
 
+function markMeetingCompleted(databasePath, meetingId, endedAt = Date.now()) {
+  if (!meetingId) return null;
+  const db = getDatabase(databasePath);
+  const existing = db
+    .prepare("SELECT id, started_at, ended_at, status FROM meetings WHERE id = ?")
+    .get(meetingId);
+  if (!existing) return null;
+  const finalEndedAt = Number(endedAt || existing.ended_at || Date.now());
+  db.prepare(
+    "UPDATE meetings SET status = 'completed', ended_at = ?, updated_at = ? WHERE id = ?",
+  ).run(finalEndedAt, Date.now(), meetingId);
+  return loadMeetingRecord(databasePath, meetingId);
+}
+
 function listMeetingRecords(databasePath) {
   const db = getDatabase(databasePath);
   return db
@@ -1924,6 +1938,7 @@ function deleteMeetingRecords(databasePath, meetingIds) {
 }
 
 module.exports = {
+  markMeetingCompleted,
   finalizeOrphanedMeetings,
   listMeetingRecords,
   deleteMeetingRecords,

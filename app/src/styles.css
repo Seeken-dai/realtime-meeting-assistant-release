@@ -2724,6 +2724,7 @@ h2 { font-size: 17px; margin-bottom: 4px; letter-spacing: -.01em; }
 }
 
 .floating-generating-badge {
+  -webkit-app-region: no-drag;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -2732,9 +2733,11 @@ h2 { font-size: 17px; margin-bottom: 4px; letter-spacing: -.01em; }
   background: color-mix(in srgb, var(--brass) 12%, transparent);
   padding: 1px 6px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .floating-paused-badge {
+  -webkit-app-region: no-drag;
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -2753,6 +2756,7 @@ h2 { font-size: 17px; margin-bottom: 4px; letter-spacing: -.01em; }
 }
 
 .floating-hover-freeze-tag {
+  -webkit-app-region: no-drag;
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -2775,11 +2779,12 @@ h2 { font-size: 17px; margin-bottom: 4px; letter-spacing: -.01em; }
   border: 1px solid var(--rule-soft);
   border-radius: 5px;
   padding: 1px;
+  flex-shrink: 0;
 }
 
 .floating-nav-btn {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -2789,6 +2794,7 @@ h2 { font-size: 17px; margin-bottom: 4px; letter-spacing: -.01em; }
   border-radius: 3px;
   color: var(--graphite-2);
   cursor: pointer;
+  -webkit-app-region: no-drag;
 }
 
 .floating-nav-btn:hover:not(:disabled) {

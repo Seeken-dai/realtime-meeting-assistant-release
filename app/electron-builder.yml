@@ -6,7 +6,7 @@ copyright: Copyright © 2026 Meeting Copilot
 asar: true
 compression: normal
 directories:
-  output: ../release/V0.1.5
+  output: ../release/V0.1.6
   buildResources: build
 files:
   - dist/**
@@ -35,7 +35,7 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: 实时会议话术助手
-  uninstallDisplayName: 实时会议话术助手 V0.1.5
+  uninstallDisplayName: 实时会议话术助手 V0.1.6
   deleteAppDataOnUninstall: false
   runAfterFinish: false
 electronLanguages:
